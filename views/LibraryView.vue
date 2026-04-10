@@ -23,26 +23,25 @@
         <div class="settings-group">
           <label for="tense">Tense:</label>
           <select id="tense" v-model="selectedTense">
-            <option value="present">Present</option>
-            <option value="aorist">Aorist</option>
-            <!-- Add more tenses as needed -->
+            <option v-for="tense in tenseList" :key="tense" :value="tense">
+              {{ capitalizeFirst(tense) }}
+            </option>
           </select>
         </div>
         <div class="settings-group">
           <label for="difficulty">Difficulty:</label>
           <select id="difficulty" v-model="selectedDifficulty">
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-            <!-- Add more difficulties as needed -->
+            <option v-for="difficulty in difficultyList" :key="difficulty" :value="difficulty">
+              {{ capitalizeFirst(difficulty) }}
+            </option>
           </select>
         </div>
         <div class="settings-group">
           <label for="quizMode">Mode:</label>
           <select id="quizMode" v-model="selectedQuizMode">
-            <option value="text">Text Input</option>
-            <option value="unscramble">Unscramble</option>
-            <option value="multiple-choice">Multiple Choice</option>
+            <option v-for="mode in quizModeList" :key="mode" :value="mode">
+              {{ formatQuizMode(mode) }}
+            </option>
           </select>
         </div>
         <div class="modal-actions">
@@ -59,6 +58,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useApi } from '@/composables/useApi';
 import { useSessionStore } from '@/stores/useSessionStore';
+import { TENSE_LIST, DIFFICULTY_LIST, QUIZ_MODE_LIST, DEFAULT_SETTINGS } from '@/constants';
 
 const { stories, loading, error, fetchStories } = useApi();
 const sessionStore = useSessionStore();
@@ -66,9 +66,14 @@ const router = useRouter();
 
 const showSetupModal = ref(false);
 const selectedStory = ref<any>(null); // Replace 'any' with a proper Story type if available
-const selectedTense = ref('present');
-const selectedDifficulty = ref('easy');
-const selectedQuizMode = ref<'text' | 'unscramble' | 'multiple-choice'>('text');
+const selectedTense = ref(DEFAULT_SETTINGS.TENSE);
+const selectedDifficulty = ref(DEFAULT_SETTINGS.DIFFICULTY);
+const selectedQuizMode = ref(DEFAULT_SETTINGS.QUIZ_MODE);
+
+// Use constants for dropdown lists
+const tenseList = TENSE_LIST;
+const difficultyList = DIFFICULTY_LIST;
+const quizModeList = QUIZ_MODE_LIST;
 
 onMounted(async () => {
   await fetchStories();
@@ -99,6 +104,16 @@ const startQuiz = async () => {
   router.push({ name: 'Quiz', params: { storyId: selectedStory.value.id } });
 
   closeSetupModal();
+};
+
+// Helper to capitalize first letter for display
+const capitalizeFirst = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+// Helper to format quiz mode for display (e.g., "multiple-choice" -> "Multiple Choice")
+const formatQuizMode = (mode: string) => {
+  return mode.split('-').map(word => capitalizeFirst(word)).join(' ');
 };
 
 // Computed property to derive story titles if not present

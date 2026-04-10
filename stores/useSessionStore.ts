@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { useApi } from '@/composables/useApi'; // Assuming useApi is set up correctly
 import { getLcsDiff } from '@/utils/diff'; // Assuming diff utility is correctly set up
+import { TENSES, DIFFICULTIES, QUIZ_MODES, DEFAULT_SETTINGS } from '@/constants';
 
 // Define the structure for a single sentence's progress
 interface SentenceProgress {
@@ -55,7 +56,7 @@ export const useSessionStore = defineStore('session', {
         this.sentences = storyData.sentences.map((sentence: any) => ({
           id: sentence.id,
           userAnswer: '',
-          correctAnswer: sentence.tenses[this.currentTense || 'present']?.verb || '', // Default to present or handle missing tense
+          correctAnswer: sentence.tenses[this.currentTense || DEFAULT_SETTINGS.TENSE]?.verb || '', // Default to present or handle missing tense
           isCorrect: false,
           diff: [],
         }));
@@ -75,7 +76,7 @@ export const useSessionStore = defineStore('session', {
         this.sentences = this.currentStoryData.sentences.map((sentence: any) => ({
           id: sentence.id,
           userAnswer: '',
-          correctAnswer: sentence.tenses[this.currentTense || 'present']?.verb || '',
+          correctAnswer: sentence.tenses[this.currentTense || DEFAULT_SETTINGS.TENSE]?.verb || '',
           isCorrect: false,
           diff: [],
         }));
@@ -91,7 +92,7 @@ export const useSessionStore = defineStore('session', {
       const targetSentence = this.currentStoryData.sentences.find((s: any) => s.id === sentenceId);
       if (!targetSentence) return;
 
-      const correctAnswer = targetSentence.tenses[this.currentTense || 'present']?.verb;
+      const correctAnswer = targetSentence.tenses[this.currentTense || DEFAULT_SETTINGS.TENSE]?.verb;
       if (!correctAnswer) return;
 
       const sentenceProgress = this.sentences[sentenceIndex];
