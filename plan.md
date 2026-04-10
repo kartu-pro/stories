@@ -23,30 +23,107 @@ Tracks completions based on the specific settings used during the session.
 
 > **Tip:** Use a composite unique index on `(user_id, story_id, tense, difficulty)` to prevent duplicate rows.
 
-### 2.2 Story JSONB Structure
-Each sentence object inside a story’s `sentences` array:
+### 2.2 Supabase Schema: `stories`
+Defines the structure of a story and its sentences. Stored as a JSONB column `content` in the `stories` table.
 
+| Column   | Type    | Description |
+|----------|---------|-------------|
+| `id`     | UUID    | Primary key for the story. |
+| `title`  | Text    | Human‑readable title of the story. |
+| `author` | Text    | Optional author/creator name. |
+| `content`| JSONB   | Full story payload (see **Story JSONB Structure** below). |
+| `created_at` | Timestamp | When the story was added. |
+| `updated_at` | Timestamp | Last modification time. |
+
+#### Story JSONB Structure
 ```json
 {
   "image_uuid": "550e8400-e29b-41d4-a716-446655440000",
-  "tenses": {
-    "present": {
+  "sentences": [
+    {
+      "id": "1",
       "georgian": "ბავშვი ჭამს ვაშლს",
       "english": "The child is eating an apple",
-      "verb": "ჭამს",
-      "distractors": ["ჭამ", "ჭამენ"]
+      "image_uuid": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
+      "tenses": {
+        "present": {
+          "georgian": "ბავშვი ჭამს ვაშლს",
+          "english": "The child is eating an apple",
+          "verb": "ჭამს",
+          "distractors": ["ჭამ", "ჭამენ"]
+        },
+        "aorist": {
+          "georgian": "ბავშვმა შეჭამა ვაშლი",
+          "english": "The child ate the apple",
+          "verb": "შეჭამა",
+          "distractors": ["ვჭამე", "ჭამა"]
+        }
+      }
     },
-    "aorist": {
-      "georgian": "ბავშვმა შეჭამა ვაშლი",
-      "english": "The child ate the apple",
-      "verb": "შეჭამა",
-      "distractors": ["ვჭამე", "ჭამა"]
+    {
+      "id": "2",
+      "georgian": "მამა მუშაობს ბაღში",
+      "english": "Dad works in the garden",
+      "image_uuid": "b2c3d4e5-6789-0abc-def1-234567890abc",
+      "tenses": {
+        "present": {
+          "georgian": "მამა მუშაობს ბაღში",
+          "english": "Dad works in the garden",
+          "verb": "მუშაობს",
+          "distractors": ["მუშაობ", "მუშაობენ"]
+        },
+        "aorist": {
+          "georgian": "მამამ მუშაობა ბაღში",
+          "english": "Dad worked in the garden",
+          "verb": "მუშავდა",
+          "distractors": ["მუშავდა", "მუშავდა"]
+        }
+      }
     }
-  }
+    // ... additional sentences ...
+  ]
 }
 ```
 
-> **Note:** Store the JSONB in a Supabase table `stories` with a primary key `id` (UUID). The `image_uuid` references `/public/assets/images/`.
+**Schema Details**
+
+- **Story Level**
+  - `id` – UUID, primary key.
+  **`title`** – Required, non‑empty string.
+  **`author`** – Optional string.
+  **`content.image_uuid`** – UUID referencing a pre‑uploaded image asset that represents the story’s cover or thumbnail.
+  **`content.sentences`** – Array of sentence objects (minimum 1).
+
+- **Sentence Level**
+  - `id` – String or UUID unique within the story.
+  - `georgian` – Full Georgian sentence (used for display in “Easy” mode).
+  - `english` – English translation.
+  - `image_uuid` – UUID linking to an illustration for this sentence.
+  - `tenses` – Object keyed by tense name (e.g., `present`, `aorist`, `future`).
+    - Each tense object contains:
+      - `georgian` – Sentence in the specific tense.
+      - `english` – Translation for that tense.
+      - `verb` – The target verb string that learners must produce.
+      - `distractors` – Array of 2‑3 plausible but incorrect verb forms.
+
+> **Validation Rules**
+> - Every `tenses` entry must include `georgian`, `english`, `verb`, and at least two `distractors`.
+> - All `image_uuid` values must correspond to an existing file in `/public/assets/images/`.
+> - The `sentences` array order defines the slide order in the UI.
+
+### 2.3 Supabase Schema: `user_progress`
+(Repeated here for context; unchanged from earlier description.)
+
+| Column        | Type    | Description |
+|---------------|---------|-------------|
+| `user_id`     | UUID    | Authenticated user ID. |
+| `story_id`    | UUID    | Story identifier. |
+| `tense`       | String  | e.g., `'aorist'`. |
+| `difficulty`  | String  | e.g., `'hard'`. |
+| `accuracy`    | Integer | 0‑100. |
+| `completed_at`| Timestamp | UTC. |
+
+> **Tip:** Use a composite unique index on `(user_id, story_id, tense, difficulty)` to prevent duplicate rows.
 
 ## 3. Component Architecture (Modular Files)
 
