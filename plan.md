@@ -1,10 +1,4 @@
-Understood. We're stripping out the "extras" to keep the focus on the core pedagogical mechanics and performance. 
-
-Here is the **Technical Blueprint (V4.0)**. I’ve restored the UI/UX rules, integrated the intelligent distractor logic, and ensured the data-saver and accuracy constraints are front and center.
-
----
-
-# 🇬🇪 Georgian Story App: Technical Blueprint (V4.0)
+# Georgian Story App: Technical Blueprint (V4.0)
 
 ## 1. Project Overview
 A high-polish, modular Web App for learning Georgian through stories. Focus is on performance (zero-latency transitions) and linguistic accuracy.
