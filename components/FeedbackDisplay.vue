@@ -47,9 +47,10 @@ const feedback = computed(() => {
 }
 
 .insertion {
-  color: blue; /* Typically indicate something added */
-  background-color: #e6f7ff;
+  color: #006400; /* Dark Green */
+  background-color: #f0fff0; /* Honeydew */
   text-decoration: underline;
+  font-weight: bold;
 }
 
 .deletion {
