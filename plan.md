@@ -53,11 +53,32 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 
 | Folder | Key Files & Responsibilities |
 | :--- | :--- |
-| **`/stores`** | `useConfigStore` (Settings/Toggles, including Dark Mode toggle with Local Storage persistence), `useSessionStore` (Quiz state), `useAuthStore`. |
-| **`/views`** | `LibraryView` (Story selection), `QuizView` (Main engine), `SummaryView` (Results). |
-| **`/components`**| `QuizEngine` (Logic switcher), `FeedbackDisplay` (LCS Diff), `ImageFrame`. |
-| **`/utils`** | `diff.ts` (Character matching), `distractors.ts` (Intelligent tile generation). |
-| **`/composables`**| `useApi.ts` (Supabase wrappers), `useHaptics.ts` (Vibration alerts). |
+| **`/stores`** |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useConfigStore.ts` | Manages app-wide configuration and settings (e.g., dark mode, data saver). |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useSessionStore.ts` | Handles the state and logic for the current quiz session. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useAuthStore.ts` | Manages user authentication state and interactions with Supabase Auth. |
+| **`/views`** |
+| &nbsp;&nbsp;&nbsp;&nbsp;`LibraryView.vue` | Displays the list of available stories for selection. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`QuizView.vue` | The main interface for the quiz, handling user input and progress. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`SummaryView.vue` | Presents the quiz results and session summary to the user. |
+| **`/components`**|
+| &nbsp;&nbsp;&nbsp;&nbsp;`QuizEngine.vue` | Orchestrates the different quiz modes and core logic. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`FeedbackDisplay.vue` | Shows real-time feedback on user answers using LCS Diff algorithm. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`ImageFrame.vue` | Displays story-related images with responsive handling. |
+| **`/utils`** |
+| &nbsp;&nbsp;&nbsp;&nbsp;`diff.ts` | Implements the Longest Common Subsequence (LCS) algorithm for feedback. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`distractors.ts` | Generates intelligent distractor tiles for unscramble mode. |
+| **`/composables`**|
+| &nbsp;&nbsp;&nbsp;&nbsp;`useApi.ts` | Provides a wrapper for Supabase API calls and data fetching. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useHaptics.ts` | Manages haptic feedback (vibrations) for user interactions. |
+
+## 3.1 Application Routes
+
+| Path | View/Component | Description |
+| :--- | :--- | :--- |
+| `/` | `LibraryView` | Home page, displays list of stories. |
+| `/quiz/:storyId` | `QuizView` | Main quiz interface for a specific story. `:storyId` is the unique identifier for the story. |
+| `/summary/:storyId` | `SummaryView` | Displays the results and summary after completing a quiz. |
 
 ## 4. Core Logic & Scoring
 
