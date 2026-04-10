@@ -53,7 +53,7 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 
 | Folder | Key Files & Responsibilities |
 | :--- | :--- |
-| **`/stores`** | `useConfigStore` (Settings/Toggles), `useSessionStore` (Quiz state), `useAuthStore`. |
+| **`/stores`** | `useConfigStore` (Settings/Toggles, including Dark Mode toggle with Local Storage persistence), `useSessionStore` (Quiz state), `useAuthStore`. |
 | **`/views`** | `LibraryView` (Story selection), `QuizView` (Main engine), `SummaryView` (Results). |
 | **`/components`**| `QuizEngine` (Logic switcher), `FeedbackDisplay` (LCS Diff), `ImageFrame`. |
 | **`/utils`** | `diff.ts` (Character matching), `distractors.ts` (Intelligent tile generation). |
