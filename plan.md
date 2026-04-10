@@ -64,7 +64,7 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 | Folder | Key Files & Responsibilities |
 | :--- | :--- |
 | **`/stores`** |
-| &nbsp;&nbsp;&nbsp;&nbsp;`useConfigStore.ts` | Manages app-wide configuration and settings (e.g., dark mode, data saver). |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useConfigStore.ts` | Manages app-wide configuration and settings (e.g., dark mode, load images/audio). |
 | &nbsp;&nbsp;&nbsp;&nbsp;`useSessionStore.ts` | Handles the state and logic for the current quiz session. |
 | &nbsp;&nbsp;&nbsp;&nbsp;`useAuthStore.ts` | Manages user authentication state and interactions with Supabase Auth. Also tracks user tier. |
 | **`/views`** |
