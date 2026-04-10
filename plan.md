@@ -5,6 +5,7 @@ A high-polish, modular Web App for learning Georgian through stories. Focus is o
 
 - **Tech Stack:** Vue 3 (Composition API), Vue Router, TypeScript, Pinia, Supabase.
 - **Hosting/CI:** GitHub Pages + GitHub Actions for automated deployment.
+- **Access Model:** Tiered access (Anonymous, Free, Premium).
 
 ## 2. Data Architecture
 
@@ -24,6 +25,7 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 ```json
 {
   "image_uuid": "cover-uuid",
+  "tier": "anonymous, free, or premium",
   "sentences": [
     {
       "id": "s1",
@@ -49,6 +51,14 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 }
 ```
 
+### 2.3 Supabase Schema: `user_profiles`
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | UUID | References Supabase Auth. |
+| `tier` | UUID | 'free' or 'premium'. Defaults to 'free'. |
+
+
+
 ## 3. Project File Manifest
 
 | Folder | Key Files & Responsibilities |
@@ -56,7 +66,7 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 | **`/stores`** |
 | &nbsp;&nbsp;&nbsp;&nbsp;`useConfigStore.ts` | Manages app-wide configuration and settings (e.g., dark mode, data saver). |
 | &nbsp;&nbsp;&nbsp;&nbsp;`useSessionStore.ts` | Handles the state and logic for the current quiz session. |
-| &nbsp;&nbsp;&nbsp;&nbsp;`useAuthStore.ts` | Manages user authentication state and interactions with Supabase Auth. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useAuthStore.ts` | Manages user authentication state and interactions with Supabase Auth. Also tracks user tier. |
 | **`/views`** |
 | &nbsp;&nbsp;&nbsp;&nbsp;`LibraryView.vue` | Displays the list of available stories for selection. |
 | &nbsp;&nbsp;&nbsp;&nbsp;`QuizView.vue` | The main interface for the quiz, handling user input and progress. |
@@ -65,11 +75,13 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 | &nbsp;&nbsp;&nbsp;&nbsp;`QuizEngine.vue` | Orchestrates the different quiz modes and core logic. |
 | &nbsp;&nbsp;&nbsp;&nbsp;`FeedbackDisplay.vue` | Shows real-time feedback on user answers using LCS Diff algorithm. |
 | &nbsp;&nbsp;&nbsp;&nbsp;`ImageFrame.vue` | Displays story-related images with responsive handling. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`TierBadge.vue` | UI component to label stories. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`UpgradeModal.vue` | Prompt shown a user tires to access content above their tier. |
 | **`/utils`** |
 | &nbsp;&nbsp;&nbsp;&nbsp;`diff.ts` | Implements the Longest Common Subsequence (LCS) algorithm for feedback. |
 | &nbsp;&nbsp;&nbsp;&nbsp;`distractors.ts` | Generates intelligent distractor tiles for unscramble mode. |
 | **`/composables`**|
-| &nbsp;&nbsp;&nbsp;&nbsp;`useApi.ts` | Provides a wrapper for Supabase API calls and data fetching. |
+| &nbsp;&nbsp;&nbsp;&nbsp;`useApi.ts` | Provides a wrapper for Supabase API calls and data fetching. Injects tier-based filters to queries. |
 | &nbsp;&nbsp;&nbsp;&nbsp;`useHaptics.ts` | Manages haptic feedback (vibrations) for user interactions. |
 
 ## 3.1 Application Routes
@@ -77,8 +89,12 @@ Fetched as one monolithic block per story to allow instant mid-session setting c
 | Path | View/Component | Description |
 | :--- | :--- | :--- |
 | `/` | `LibraryView` | Home page, displays list of stories. |
-| `/quiz/:storyId` | `QuizView` | Main quiz interface for a specific story. `:storyId` is the unique identifier for the story. |
-| `/summary/:storyId` | `SummaryView` | Displays the results and summary after completing a quiz. |
+| `/story/:storyId` | `QuizView` | Main quiz interface for a specific story. `:storyId` is the unique identifier for the story. |
+| `/summary/:storyId` | `SummaryView` | Displays the results and summary after completing a story. |
+
+## 3.2 Filtering Strategy
+* **Database Level:** Supabase Row Level Security (RLS) ensures that a user's session token cannot fetch stories above their tier.
+* **UI Level:** LibraryView.vue uses the useAuthStore to visually "lock" premium stories for free users, redirecting them to a landing/upgrade page.
 
 ## 4. Core Logic & Scoring
 
@@ -104,6 +120,7 @@ Applies to both **TextInput** and **Unscramble** modes.
 - On story click, a **Setup Modal** overrides the screen.
 - User *must* select Tense and Difficulty to proceed.
 - These settings remain editable via a settings icon mid-story, triggering an immediate UI update.
+- For premium stories clicked by free/anonymous users, the Upgrade Model takes precedence.
 
 ### 5.2 Data Saver & Mobile Optimization
 - **Image Toggle:** If disabled, the image container uses `v-if` to hide completely; text content expands to fill the space.
@@ -123,6 +140,6 @@ Applies to both **TextInput** and **Unscramble** modes.
 
 ## 7. Security & Infrastructure
 
-- **Auth:** Supabase Auth handles user sessions.
+- **Auth:** Supabase Auth handles user sessions and links to `user_pfiles` for tier verification.
 - **Security:** Row Level Security (RLS) on `user_progress` ensures users only access their own scores.
 - **CI/CD:** Automated Vitest runs and GitHub Pages deployment on every push to `main`.
