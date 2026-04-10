@@ -1,105 +1,50 @@
 /**
- * Computes the Longest Common Subsequence (LCS) between two strings.
- * Returns an array of operations: 'equal', 'insert', 'delete'.
+ * Computes the Longest Common Subsequence (LCS) and generates diff operations.
+ * Returns an array of objects, each indicating the character and its type: 'match', 'insertion', 'deletion'.
  */
-export function computeLCS(s1: string, s2: string): ('equal' | 'insert' | 'delete')[] {
-  const m = s1.length
-  const n = s2.length
-  const dp: number[][] = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0))
+export const getLcsDiff = (s1: string, s2: string): { char: string; type: 'match' | 'insertion' | 'deletion' }[] => {
+  const n = s1.length;
+  const m = s2.length;
+  const dp: number[][] = Array(n + 1).fill(0).map(() => Array(m + 1).fill(0));
 
   // Build the DP table
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
       if (s1[i - 1] === s2[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1
+        dp[i][j] = dp[i - 1][j - 1] + 1;
       } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
       }
     }
   }
 
   // Backtrack to find the operations
-  const operations: ('equal' | 'insert' | 'delete')[] = []
-  let i = m
-  let j = n
+  let i = n;
+  let j = m;
+  const result: { char: string; type: 'match' | 'insertion' | 'deletion' }[] = [];
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && s1[i - 1] === s2[j - 1]) {
-      operations.push('equal')
-      i--
-      j--
-    } else if (j > 0 && (i === 0 || dp[i][j] === dp[i][j - 1])) {
-      operations.push('insert')
-      j--
-    } else if (i > 0 && (j === 0 || dp[i][j] === dp[i - 1][j])) {
-      operations.push('delete')
-      i--
+      result.unshift({ char: s1[i - 1], type: 'match' });
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      // If j > 0 and either i is 0 (meaning we've exhausted s1)
+      // or the value from inserting into s1 (dp[i][j-1]) is greater than or equal to
+      // the value from deleting from s1 (dp[i-1][j]), we treat it as an insertion.
+      result.unshift({ char: s2[j - 1], type: 'insertion' });
+      j--;
+    } else if (i > 0 && (j === 0 || dp[i - 1][j] > dp[i][j - 1])) {
+      // If i > 0 and either j is 0 (meaning we've exhausted s2)
+      // or the value from deleting from s1 (dp[i-1][j]) is greater than
+      // the value from inserting into s1 (dp[i][j-1]), we treat it as a deletion.
+      result.unshift({ char: s1[i - 1], type: 'deletion' });
+      i--;
+    } else {
+        // This case should ideally not be reached if the DP table is built correctly,
+        // but as a fallback, we can prioritize deletion if both paths yield the same LCS length.
+        result.unshift({ char: s1[i - 1], type: 'deletion' });
+        i--;
     }
   }
-
-  return operations.reverse()
-}
-
-/**
- * Generates diff highlighting information based on LCS operations.
- * Returns an array of objects, each indicating the type of segment and its text.
- */
-export function generateDiff(s1: string, s2: string): { type: 'equal' | 'insert' | 'delete'; text: string }[] {
-  const operations = computeLCS(s1, s2)
-  const diff: { type: 'equal' | 'insert' | 'delete'; text: string }[] = []
-
-  let currentOp: 'equal' | 'insert' | 'delete' | null = null
-  let currentText = ''
-  let s1Index = 0
-  let s2Index = 0
-
-  operations.forEach(op => {
-    if (op === 'equal') {
-      if (currentOp === 'equal') {
-        currentText += s1[s1Index]
-      } else {
-        if (currentOp !== null) diff.push({ type: currentOp, text: currentText })
-        currentOp = 'equal'
-        currentText = s1[s1Index]
-      }
-      s1Index++
-      s2Index++
-    } else if (op === 'insert') {
-      if (currentOp === 'insert') {
-        currentText += s2[s2Index]
-      } else {
-        if (currentOp !== null) diff.push({ type: currentOp, text: currentText })
-        currentOp = 'insert'
-        currentText = s2[s2Index]
-      }
-      s2Index++
-    } else if (op === 'delete') {
-      if (currentOp === 'delete') {
-        currentText += s1[s1Index]
-      } else {
-        if (currentOp !== null) diff.push({ type: currentOp, text: currentText })
-        currentOp = 'delete'
-        currentText = s1[s1Index]
-      }
-      s1Index++
-    }
-  })
-
-  if (currentOp !== null) {
-    diff.push({ type: currentOp, text: currentText })
-  }
-
-  // Post-processing to merge adjacent identical operations if any
-  const mergedDiff: { type: 'equal' | 'insert' | 'delete'; text: string }[] = []
-  if (diff.length > 0) {
-    mergedDiff.push(diff[0])
-    for (let i = 1; i < diff.length; i++) {
-      if (diff[i].type === mergedDiff[mergedDiff.length - 1].type) {
-        mergedDiff[mergedDiff.length - 1].text += diff[i].text
-      } else {
-        mergedDiff.push(diff[i])
-      }
-    }
-  }
-
-  return mergedDiff
-}
+  return result;
+};
