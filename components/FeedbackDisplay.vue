@@ -17,7 +17,13 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// The computed property `feedback` will now directly use the result from `getLcsDiff`
+// which returns objects with `char` and `type` properties.
 const feedback = computed(() => {
+  // Ensure both expected and actual strings are provided before calculating diff
+  if (props.expected === undefined || props.actual === undefined) {
+    return [];
+  }
   return getLcsDiff(props.expected, props.actual);
 });
 </script>
