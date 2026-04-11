@@ -43,9 +43,12 @@ const isAtEnd = computed(() => {
 
 const handleMainAction = () => {
   if (session.isSubmitted) {
-    session.nextSentence();
+    if (isAtEnd.value) {
+      router.push('/summary'); // Navigate to summary when the last sentence is done
+    } else {
+      session.nextSentence();
+    }
   } else {
-    // This triggers the store logic we built in Step 4/11
     session.submitCurrentAnswer(); 
   }
 };
