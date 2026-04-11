@@ -9,46 +9,67 @@ export type Tense = typeof TENSES[keyof typeof TENSES];
 export type Difficulty = typeof DIFFICULTIES[keyof typeof DIFFICULTIES];
 
 /**
- * Linguistic Data Structure
+ * 1. RELATIONAL CONTENT STRUCTURE
+ * These match the new Supabase schema while maintaining your linguistic requirements.
  */
-export interface TenseData {
-  georgian: string;
-  english: string;
-  verb: string;
-  distractors: string[]; // Standard distractors for Multiple Choice
-  audio_url: string;
+
+export interface Quiz {
+  id: string;
+  type: string;        // e.g., 'verb', 'noun', 'vocabulary'
+  answer: string;      // The exact substring to be clozed
+  hint?: string;        // The dictionary/infinitive form
+  distractors: string[]; // Options for MCQ or Unscramble logic
 }
 
-/**
- * Sentence Structure
- * Each sentence maps specific Tenses to their respective linguistic data.
- */
-export interface Sentence {
+export interface Translation {
+  id: string;
+  lang: string;        // 'ka', 'en', etc.
+  tense: Tense | null; // Nullable for non-verb focus
+  full_text: string;   // The complete ground-truth sentence
+  audio_url?: string;  // For post-submission playback
+  quizzes: Quiz[];     // The various "Lenses" for this sentence
+}
+
+export interface Scene {
   id: string;
   image_uuid: string;
-  tenses: Record<Tense, TenseData>;
+  order: number;
+  translations: Translation[];
 }
 
 /**
- * Story Structure
- * The monolithic block fetched at the start of a session.
+ * 2. CORE ENGINE STRUCTURES
+ * This replaces your monolithic "Sentence" with the Scene-based model.
  */
+
 export interface Story {
   id: string;
-  image_uuid: string;
+  title: string;
   tier: UserTier;
-  sentences: Sentence[];
+  scenes: Scene[];
 }
 
 /**
- * Progress Tracking
- * Schema for syncing with the Supabase 'user_progress' table.
+ * 3. PROGRESS & SESSION TRACKING
+ * Restored from your original blueprint to support the SummaryView.
  */
+
 export interface UserProgress {
   user_id: string;
   story_id: string;
   tense: Tense;
   difficulty: Difficulty;
-  accuracy: number; // (first_try_correct / total_questions) * 100
+  accuracy: number; // Calculated as (first_try_correct / total_questions) * 100
   completed_at?: string;
+}
+
+/**
+ * SessionResult is used by useSessionStore to track the live state 
+ * of the current quiz before pushing to Supabase.
+ */
+export interface SessionResult {
+  sceneId: string;
+  isFirstTryCorrect: boolean;
+  userAnswer: string;
+  timestamp: string;
 }
