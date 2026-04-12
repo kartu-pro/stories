@@ -30,4 +30,4 @@ A web app for learning foreign languages using short stories.
 - Supabase - data storage and auth
 - Vue.js (Composition API) with Vue Router and Pinia
 - Typescript
-- Github pages for hosting vue front end and media files
+- Github pages for hosting vue front end and media files (or other free host that allows repo to remain private - Netlify, Vercel, Cloudflare)
