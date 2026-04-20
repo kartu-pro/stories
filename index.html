@@ -4,306 +4,833 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Alpine Quiz</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Modern Alpine Quiz - Semantic Edition</title>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* --- Base Variables & Theming --- */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-app: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --border: #e2e8f0;
+            --bg-panel: #f1f5f9;
+            --bg-success: #dcfce7;
+            --text-success: #166534;
+            --border-success: #22c55e;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-dark {
+            --bg-body: #0f172a;
+            --bg-app: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --border: #334155;
+            --bg-panel: #0f172a;
+            --bg-success: rgba(22, 101, 52, 0.3);
+            --text-success: #4ade80;
+            --border-success: #15803d;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .theme-sepia {
+            --bg-body: #e4dccc;
+            --bg-app: #fdf6e3;
+            --text-main: #5b4636;
+            --text-muted: #8b7355;
+            --primary: #d97706;
+            --primary-hover: #b45309;
+            --border: #e6d5b8;
+            --bg-panel: #f4ecd8;
+            --bg-success: #eefad4;
+            --text-success: #3f6620;
+            --border-success: #84cc16;
+        }
+
+        /* --- Reset & Global --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         [x-cloak] {
             display: none !important;
         }
 
-        /* Custom scrollbar for the question text if it overflows */
+        body {
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-family: sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        button {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: inherit;
+            font: inherit;
+        }
+
+        input {
+            border: 1px solid var(--border);
+            background: var(--bg-app);
+            color: var(--text-main);
+        }
+
+        /* Custom scrollbar */
         .custom-scroll::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
+            background: var(--border);
             border-radius: 10px;
+        }
+
+        /* --- Layout & Semantic Structure --- */
+        .app-container {
+            width: 100%;
+            max-width: 32rem;
+            height: 100vh;
+            background: var(--bg-app);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .step-nav,
+        .action-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .action-nav {
+            gap: 0.25rem;
+        }
+
+        .step-indicator {
+            min-width: 60px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.4;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-panel);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.5s ease-out;
+        }
+
+        /* --- Main Content Areas --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .question-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            overflow: hidden;
+        }
+
+        .question-image {
+            width: 100%;
+            height: 160px;
+            flex-shrink: 0;
+            margin-bottom: 1.5rem;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: var(--bg-panel);
+        }
+
+        .question-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .question-content {
+            flex: 1;
+            position: relative;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .question-text-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 3rem;
+            /* Space for absolute buttons */
+        }
+
+        .question-text-container h1 {
+            font-weight: bold;
+        }
+
+        .question-tools {
+            position: absolute;
+            right: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        /* --- Answers Section --- */
+        .answer-view {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            background: var(--bg-panel);
+        }
+
+        .multiple-choice {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .unscramble-game {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .unscramble-dropzone {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            min-height: 4rem;
+            border-bottom: 2px dashed var(--border);
+        }
+
+        .unscramble-pool {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .text-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .text-input-group input {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--border);
+            outline: none;
+        }
+
+        /* --- Success Message --- */
+        .success-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background: var(--bg-success);
+            border: 1px solid var(--border-success);
+            color: var(--text-success);
+            margin-bottom: 1rem;
+        }
+
+        .success-box strong {
+            font-weight: bold;
+        }
+
+        .success-box p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+
+        /* --- Settings Panel (Aside) --- */
+        .settings-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 20rem;
+            background: var(--bg-app);
+            box-shadow: var(--shadow);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .settings-title i {
+            opacity: 0.5;
+        }
+
+        .settings-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.25rem;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .setting-group {
+            background: var(--bg-panel);
+            padding: 0.25rem;
+            border-radius: 0.75rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .setting-group-inner {
+            background: var(--bg-app);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .setting-card {
+            background: var(--bg-panel);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .slider-group input {
+            flex: 1;
+            accent-color: var(--primary);
+        }
+
+        .settings-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+        }
+
+        /* --- Components (Buttons, Tiles, Switches) --- */
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: 0.2s;
+            color: var(--text-muted);
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-panel);
+            color: var(--primary);
+        }
+
+        .btn-icon.text-primary {
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            transition: 0.2s;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            width: 100%;
+            padding: 1rem;
+            text-align: left;
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            transition: 0.2s;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+        }
+
+        .btn-toggle {
+            padding: 0.75rem;
+            display: flex;
+            justify-content: center;
+            border-radius: 0.5rem;
+            transition: 0.2s;
+            flex: 1;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .btn-toggle.active {
+            background: var(--bg-app);
+            box-shadow: var(--shadow);
+            color: var(--primary);
+        }
+
+        .btn-toggle:not(.active) {
+            opacity: 0.4;
+        }
+
+        .tile {
+            width: 3rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+            transition: transform 0.1s;
+        }
+
+        .tile-blue {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .tile-outline {
+            border: 2px solid var(--border);
+            background: var(--bg-app);
+            cursor: pointer;
+        }
+
+        .tile-outline:active {
+            transform: scale(0.95);
+        }
+
+        .icon-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            background: var(--bg-panel);
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .icon-indicator.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .switch {
+            position: relative;
+            width: 2.75rem;
+            height: 1.5rem;
+            background: var(--border);
+            border-radius: 999px;
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+
+        .switch::after {
+            content: "";
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .switch.is-active {
+            background: var(--primary);
+        }
+
+        .switch.is-active::after {
+            transform: translateX(1.25rem);
+        }
+
+        /* --- Alpine Transition Classes --- */
+        .slide-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .slide-hidden {
+            transform: translateX(100%);
+        }
+
+        .slide-visible {
+            transform: translateX(0);
         }
     </style>
 </head>
 
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 overflow-hidden">
+<body :class="'theme-' + theme" x-data="quizApp()">
 
-    <div x-data="{ 
-            settingsOpen: false, 
-            answered: false, 
-            questionType: 'multiple', /* 'multiple' or 'text' */
-            showImage: true,
-            progress: 40,
-            fontSize: 16,
-            theme: 'light'
-        }" class="flex flex-col h-screen max-w-lg mx-auto bg-white dark:bg-slate-800 shadow-xl relative">
+    <div class="app-container">
 
-        <header
-            class="flex items-center justify-between px-4 py-3 border-b dark:border-slate-700 bg-white dark:bg-slate-800">
-            <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
+        <header class="app-header">
+            <button class="btn-icon"><i data-lucide="x"></i></button>
 
-            <div class="flex items-center gap-4">
-                <button @click="prevQuestion()" class="p-1 text-slate-400 hover:text-blue-500 transition">
-                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                </button>
+            <nav class="step-nav">
+                <button @click="prevQuestion()" class="btn-icon"><i data-lucide="chevron-left"></i></button>
+                <div class="step-indicator" x-text="`${currentStep} / ${totalSteps}`"></div>
+                <button @click="nextQuestion()" class="btn-icon"><i data-lucide="chevron-right"></i></button>
+            </nav>
 
-                <div class="text-center min-w-[60px]">
-                    <span class="text-xs font-black tracking-widest opacity-40 uppercase">4 / 10</span>
-                </div>
-
-                <button @click="nextQuestion()" class="p-1 text-slate-400 hover:text-blue-500 transition">
-                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="flex items-center gap-1">
-                <button @click="confirm('Flag?')" class="p-2 text-slate-300 hover:text-red-500 transition">
-                    <i data-lucide="flag" class="w-5 h-5"></i>
-                </button>
-                <button @click="settingsOpen = true"
-                    class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition">
-                    <i data-lucide="settings" class="w-6 h-6"></i>
-                </button>
+            <div class="action-nav">
+                <button @click="confirm('Flag question?')" class="btn-icon"><i data-lucide="flag"></i></button>
+                <button @click="settingsOpen = true" class="btn-icon text-primary"><i
+                        data-lucide="settings"></i></button>
             </div>
         </header>
 
-        <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 overflow-hidden">
-            <div class="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-500 ease-out"
-                :style="`width: ${progress}%`"></div>
+        <div class="progress-bar">
+            <div class="progress-fill" :style="`width: ${(currentStep / totalSteps) * 100}%`"></div>
         </div>
 
-        <main class="flex-1 flex flex-col overflow-hidden">
-
-            <section class="flex flex-col flex-1 p-6 overflow-hidden transition-colors duration-300" :class="{
-        'bg-white text-slate-900': theme === 'light',
-        'bg-[#fdf6e3] text-[#5b4636]': theme === 'sepia',
-        'bg-slate-800 text-slate-100': theme === 'dark'
-    }">
-
+        <main>
+            <article class="question-view">
                 <template x-if="showImage">
-                    <div
-                        class="w-full h-40 bg-slate-200/50 dark:bg-slate-700/50 rounded-xl mb-6 flex-shrink-0 overflow-hidden shadow-sm">
-                        <img src="https://via.placeholder.com/400x200" class="w-full h-full object-cover"
-                            alt="Question visual">
-                    </div>
+                    <figure class="question-image">
+                        <img src="https://via.placeholder.com/400x200" alt="Question visual">
+                    </figure>
                 </template>
 
-                <div class="flex-1 relative flex overflow-hidden">
-
-                    <div class="flex-1 overflow-y-auto custom-scroll pr-12 min-h-0">
-                        <h1 class="leading-tight whitespace-normal break-words transition-all duration-200" :style="{ 
-                    'font-family': fontFamily === 'mono' ? 'monospace' : (fontFamily === 'serif' ? 'serif' : 'sans-serif'),
-                    'font-size': fontSize + 'px' 
-                }">
-                            This is the question text. If the text is very long, it will scroll vertically here. Because
-                            the tools are pinned to the right, they won't move, making them "sticky" utilities for the
-                            user.
+                <div class="question-content">
+                    <div class="question-text-container custom-scroll">
+                        <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }">
+                            This is the question text. It adapts cleanly based on the typography settings in the
+                            sidebar. Can you solve it?
                         </h1>
                     </div>
 
-                    <div class="absolute right-0 top-0 flex flex-col gap-2 py-1">
-                        <button @click="playAudio()"
-                            class="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors text-blue-500">
-                            <i data-lucide="volume-2" class="w-5 h-5"></i>
-                        </button>
-                        <button @click="translateQuestion()"
-                            class="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors text-blue-500">
-                            <i data-lucide="languages" class="w-5 h-5"></i>
-                        </button>
+                    <div class="question-tools">
+                        <button @click="triggerAudio()" class="btn-icon text-primary"><i
+                                data-lucide="volume-2"></i></button>
+                        <button @click="translateQuestion()" class="btn-icon text-primary"><i
+                                data-lucide="languages"></i></button>
                     </div>
                 </div>
-            </section>
+            </article>
 
-            <section class="p-6 border-t dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-
+            <section class="answer-view">
                 <div x-show="!answered" x-transition.opacity>
+
                     <template x-if="questionType === 'multiple'">
-                        <div class="space-y-3">
-                            <button @click="answered = true"
-                                class="w-full p-4 text-left border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-500 transition">Defining
-                                a component scope</button>
-                            <button @click="answered = true"
-                                class="w-full p-4 text-left border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-500 transition">Handling
-                                click events</button>
+                        <div class="multiple-choice">
+                            <button @click="submitAnswer()" class="btn-outline">Defining a component scope</button>
+                            <button @click="submitAnswer()" class="btn-outline">Handling click events</button>
                         </div>
                     </template>
 
                     <template x-if="questionType === 'unscramble'">
-                        <div x-data="{ 
-    /* This logic would eventually be dynamic */
-    tiles: [
-        { id: 1, char: 'A' }, { id: 2, char: 'L' }, 
-        { id: 3, char: 'P' }, { id: 4, char: 'I' }, 
-        { id: 5, char: 'N' }, { id: 6, char: 'E' }
-    ],
-    userAnswer: [] 
-}" class="space-y-6">
-
-                            <div
-                                class="flex flex-wrap justify-center gap-2 min-h-[3rem] p-2 border-b-2 border-dashed border-slate-300 dark:border-slate-600">
+                        <div class="unscramble-game">
+                            <div class="unscramble-dropzone">
                                 <template x-for="(tile, index) in userAnswer" :key="tile.id">
                                     <button @click="tiles.push(tile); userAnswer.splice(index, 1)"
-                                        x-transition:enter="transition scale-90 duration-200"
-                                        class="w-10 h-12 flex items-center justify-center bg-blue-600 text-white rounded-lg font-bold text-lg shadow-md transform hover:-translate-y-1">
+                                        class="tile tile-blue">
                                         <span x-text="tile.char"></span>
                                     </button>
                                 </template>
                             </div>
-
-                            <div class="flex flex-wrap justify-center gap-3">
+                            <div class="unscramble-pool">
                                 <template x-for="(tile, index) in tiles" :key="tile.id">
                                     <button @click="userAnswer.push(tile); tiles.splice(index, 1)"
-                                        class="w-12 h-14 flex items-center justify-center bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-xl font-bold text-xl shadow-sm active:scale-95 transition-transform">
+                                        class="tile tile-outline">
                                         <span x-text="tile.char"></span>
                                     </button>
                                 </template>
                             </div>
-
-                            <div class="pt-4">
-                                <button @click="answered = true" :disabled="tiles.length > 0"
-                                    :class="tiles.length > 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'"
-                                    class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold transition-colors">
-                                    Check Answer
-                                </button>
-                            </div>
+                            <button @click="checkUnscramble()" :disabled="tiles.length > 0" class="btn-primary">
+                                Check Answer
+                            </button>
                         </div>
                     </template>
 
                     <template x-if="questionType === 'text'">
-                        <div class="flex gap-2">
-                            <input type="text" placeholder="Type your answer..."
-                                class="flex-1 p-4 rounded-xl border-2 dark:bg-slate-800 dark:border-slate-700 outline-none focus:border-blue-500">
-                            <button @click="answered = true"
-                                class="px-6 bg-blue-600 text-white rounded-xl font-bold">Submit</button>
+                        <div class="text-input-group">
+                            <input type="text" placeholder="Type your answer...">
+                            <button @click="submitAnswer()" class="btn-primary" style="width: auto;">Submit</button>
                         </div>
                     </template>
                 </div>
 
                 <div x-show="answered" x-cloak x-transition:enter.duration.500ms>
-                    <div
-                        class="flex items-start gap-4 p-4 bg-green-100 dark:bg-green-900/30 border border-green-500 rounded-xl">
-                        <i data-lucide="check-circle" class="text-green-600 shrink-0"></i>
+                    <div class="success-box">
+                        <i data-lucide="check-circle"></i>
                         <div>
-                            <p class="font-bold text-green-800 dark:text-green-400">Correct!</p>
-                            <p class="text-sm opacity-80 leading-snug text-green-700 dark:text-green-300">`x-data`
-                                initializes a new component scope with a reactive data object.</p>
+                            <strong>Correct!</strong>
+                            <p>`x-data` initializes a new component scope with a reactive data object.</p>
                         </div>
                     </div>
-                    <button @click="answered = false"
-                        class="w-full mt-4 py-3 bg-slate-800 dark:bg-slate-100 dark:text-slate-900 text-white rounded-xl font-bold uppercase tracking-wide">Next
-                        Question</button>
+                    <button @click="nextQuestion()" class="btn-primary">Next Question</button>
                 </div>
-
             </section>
         </main>
 
-        <div x-show="settingsOpen" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
-            x-transition:leave="transition ease-in duration-300" x-transition:leave-start="translate-x-0"
-            x-transition:leave-end="translate-x-full"
-            class="absolute inset-y-0 right-0 w-72 bg-white dark:bg-slate-800 shadow-2xl z-50 flex flex-col border-l dark:border-slate-700"
-            x-cloak>
-            <div class="flex justify-between items-center p-4 border-b dark:border-slate-700">
-                <i data-lucide="settings-2" class="w-5 h-5 opacity-50"></i>
-                <button @click="settingsOpen = false"
-                    class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-            </div>
+        <aside class="settings-panel" x-show="settingsOpen" x-transition:enter="slide-transition"
+            x-transition:enter-start="slide-hidden" x-transition:enter-end="slide-visible"
+            x-transition:leave="slide-transition" x-transition:leave-start="slide-visible"
+            x-transition:leave-end="slide-hidden" x-cloak>
 
-            <div class="flex-1 overflow-y-auto p-4 space-y-8 custom-scroll">
-                <button @click="showImage = !showImage"
-                    class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                    <i data-lucide="image" class="w-5 h-5" :class="showImage ? 'text-blue-500' : 'opacity-30'"></i>
-                    <div class="w-10 h-5 rounded-full bg-slate-300 dark:bg-blue-600 relative transition-colors">
-                        <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform"
-                            :class="showImage ? 'translate-x-5' : ''"></div>
+            <header class="settings-header">
+                <div class="settings-title">
+                    <i data-lucide="settings-2"></i>
+                    <span>Settings</span>
+                </div>
+                <button @click="settingsOpen = false" class="btn-icon"><i data-lucide="x"></i></button>
+            </header>
+
+            <div class="settings-list custom-scroll">
+
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <div class="icon-indicator" :class="showImage ? 'active' : ''"><i data-lucide="image"></i></div>
                     </div>
-                </button>
-
-                <button @click="playAudio = !playAudio"
-                    class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                    <i :data-lucide="playAudio ? 'volume-2' : 'volume-x'" class="w-5 h-5"
-                        :class="playAudio ? 'text-blue-500' : 'opacity-30'"></i>
-                    <div class="w-10 h-5 rounded-full bg-slate-300 dark:bg-blue-600 relative transition-colors">
-                        <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform"
-                            :class="playAudio ? 'translate-x-5' : ''"></div>
-                    </div>
-                </button>
-
-                <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
-                    <button @click="questionType = 'multiple'"
-                        :class="questionType === 'multiple' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'opacity-40'"
-                        class="py-3 flex justify-center rounded-lg transition">
-                        <i data-lucide="list-ordered" class="w-5 h-5"></i> </button>
-                    <button @click="questionType = 'unscramble'"
-                        :class="questionType === 'unscramble' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'opacity-40'"
-                        class="py-3 flex justify-center rounded-lg transition">
-                        <i data-lucide="grid-3x3" class="w-5 h-5"></i> </button>
-                    <button @click="questionType = 'text'"
-                        :class="questionType === 'text' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'opacity-40'"
-                        class="py-3 flex justify-center rounded-lg transition">
-                        <i data-lucide="keyboard" class="w-5 h-5"></i> </button>
+                    <div @click="showImage = !showImage" class="switch" :class="showImage ? 'is-active' : ''"></div>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
-                        <button @click="fontFamily = 'sans'"
-                            :class="fontFamily === 'sans' ? 'bg-white dark:bg-slate-700' : 'opacity-40'"
-                            class="py-2 text-sm font-bold rounded-lg transition"
-                            style="font-family: sans-serif;">Sans</button>
-                        <button @click="fontFamily = 'serif'"
-                            :class="fontFamily === 'serif' ? 'bg-white dark:bg-slate-700' : 'opacity-40'"
-                            class="py-2 text-sm font-bold rounded-lg transition"
-                            style="font-family: serif;">Serif</button>
-                        <button @click="fontFamily = 'mono'"
-                            :class="fontFamily === 'mono' ? 'bg-white dark:bg-slate-700' : 'opacity-40'"
-                            class="py-2 text-sm font-bold rounded-lg transition"
-                            style="font-family: monospace;">Mono</button>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold">A</span>
-                        <input type="range" min="14" max="28" x-model="fontSize" class="flex-1 accent-blue-600">
-                        <span class="text-xl font-bold">A</span>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div>
-                        <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
-                            <button @click="theme = 'light'"
-                                :class="theme === 'light' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'opacity-40'"
-                                class="py-2 flex justify-center rounded-lg transition">
-                                <i data-lucide="sun" class="w-5 h-5"></i>
-                            </button>
-                            <button @click="theme = 'sepia'"
-                                :class="theme === 'sepia' ? 'bg-[#f4ecd8] text-[#5b4636] shadow-sm' : 'opacity-40'"
-                                class="py-2 flex justify-center rounded-lg transition">
-                                <i data-lucide="book-open" class="w-5 h-5"></i>
-                            </button>
-                            <button @click="theme = 'dark'"
-                                :class="theme === 'dark' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-400' : 'opacity-40'"
-                                class="py-2 flex justify-center rounded-lg transition">
-                                <i data-lucide="moon" class="w-5 h-5"></i>
-                            </button>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <div class="icon-indicator" :class="audioEnabled ? 'active' : ''"><i data-lucide="volume-2"></i>
                         </div>
                     </div>
+                    <div @click="audioEnabled = !audioEnabled" class="switch" :class="audioEnabled ? 'is-active' : ''">
+                    </div>
+                </div>
 
+                <div class="setting-group">
+                    <button @click="questionType = 'multiple'" :class="{'active': questionType === 'multiple'}"
+                        class="btn-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="7" cy="5" r="2" />
+                            <path d="M12 5h8" />
+                            <circle cx="7" cy="12" r="2" />
+                            <path d="M12 12h8" />
+                            <circle cx="7" cy="12" r="0.5" fill="currentColor" />
+                            <circle cx="7" cy="19" r="2" />
+                            <path d="M12 19h8" />
+                        </svg>
+                    </button>
+
+                    <button @click="questionType = 'unscramble'" :class="{'active': questionType === 'unscramble'}"
+                        class="btn-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="10" width="10" height="10" rx="1.5" transform="rotate(-15 8 15)"
+                                fill="var(--bg-panel)" />
+
+                            <rect x="7" y="5" width="10" height="10" rx="1.5" transform="rotate(5 12 10)"
+                                fill="var(--bg-panel)" />
+
+                            <rect x="12" y="9" width="10" height="10" rx="1.5" transform="rotate(20 17 14)"
+                                fill="var(--bg-panel)" />
+                        </svg>
+                    </button>
+
+                    <button @click="questionType = 'text'" :class="{'active': questionType === 'text'}"
+                        class="btn-toggle">
+                        <i data-lucide="keyboard"></i>
+                    </button>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-group-inner">
+                        <button @click="fontFamily = 'sans'" :class="{'active': fontFamily === 'sans'}"
+                            class="btn-toggle">Sans</button>
+                        <button @click="fontFamily = 'serif'" :class="{'active': fontFamily === 'serif'}"
+                            class="btn-toggle">Serif</button>
+                        <button @click="fontFamily = 'mono'" :class="{'active': fontFamily === 'mono'}"
+                            class="btn-toggle">Mono</button>
+                    </div>
+                    <div class="slider-group">
+                        <span style="font-size: 0.75rem; opacity: 0.5; font-weight: bold;">A</span>
+                        <input type="range" min="14" max="28" x-model="fontSize">
+                        <span style="font-size: 1.125rem; font-weight: bold;">A</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <button @click="theme = 'light'" :class="{'active': theme === 'light'}" class="btn-toggle"><i
+                            data-lucide="sun"></i></button>
+                    <button @click="theme = 'sepia'" :class="{'active': theme === 'sepia'}" class="btn-toggle"><i
+                            data-lucide="book-open"></i></button>
+                    <button @click="theme = 'dark'" :class="{'active': theme === 'dark'}" class="btn-toggle"><i
+                            data-lucide="moon"></i></button>
                 </div>
 
             </div>
-        </div>
+        </aside>
 
-        <div x-show="settingsOpen" @click="settingsOpen = false" x-cloak
-            class="absolute inset-0 bg-black/20 backdrop-blur-sm z-40"></div>
+        <div class="settings-backdrop" x-show="settingsOpen" @click="settingsOpen = false" x-cloak></div>
 
     </div>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+        function quizApp() {
+            return {
+                settingsOpen: false,
+                answered: false,
+                questionType: 'multiple',
+                showImage: true,
+                audioEnabled: false,
+                fontSize: 18,
+                fontFamily: 'sans',
+                theme: 'light',
+                currentStep: 4,
+                totalSteps: 10,
+
+                tiles: [
+                    {id: 1, char: 'A'}, {id: 2, char: 'L'}, {id: 3, char: 'P'},
+                    {id: 4, char: 'I'}, {id: 5, char: 'N'}, {id: 6, char: 'E'}
+                ],
+                userAnswer: [],
+
+                init() {
+                    this.$watch('theme', () => lucide.createIcons());
+                    this.$watch('questionType', () => {this.answered = false; this.resetUnscramble();});
+                    lucide.createIcons();
+                },
+
+                getFontFamily() {
+                    if (this.fontFamily === 'mono') return 'monospace';
+                    if (this.fontFamily === 'serif') return 'serif';
+                    return 'sans-serif';
+                },
+
+                nextQuestion() {
+                    if (this.currentStep < this.totalSteps) this.currentStep++;
+                    this.answered = false;
+                    this.resetUnscramble();
+                },
+
+                prevQuestion() {
+                    if (this.currentStep > 1) this.currentStep--;
+                    this.answered = false;
+                },
+
+                submitAnswer() {
+                    this.answered = true;
+                },
+
+                checkUnscramble() {
+                    const answer = this.userAnswer.map(t => t.char).join('');
+                    if (answer === 'ALPINE') {
+                        this.submitAnswer();
+                    } else {
+                        alert('Incorrect. Try again!');
+                        this.resetUnscramble();
+                    }
+                },
+
+                resetUnscramble() {
+                    this.tiles = [...this.tiles, ...this.userAnswer].sort((a, b) => a.id - b.id);
+                    this.userAnswer = [];
+                },
+
+                triggerAudio() {
+                    if (this.audioEnabled) {
+                        alert("Playing audio hint...");
+                    } else {
+                        alert("Audio is muted in settings.");
+                    }
+                },
+
+                translateQuestion() {
+                    alert("Translating question...");
+                }
+            }
+        }
     </script>
 </body>
 
