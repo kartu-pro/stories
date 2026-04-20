@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Alpine Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Custom scrollbar for the question text if it overflows */
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 overflow-hidden">
+
+    <div x-data="{ 
+            settingsOpen: false, 
+            answered: false, 
+            questionType: 'multiple', /* 'multiple' or 'text' */
+            showImage: true,
+            progress: 40,
+            fontSize: 16,
+            theme: 'light'
+        }" class="flex flex-col h-screen max-w-lg mx-auto bg-white dark:bg-slate-800 shadow-xl relative">
+
+        <header
+            class="flex items-center justify-between px-4 py-3 border-b dark:border-slate-700 bg-white dark:bg-slate-800">
+            <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="flex items-center gap-4">
+                <button @click="prevQuestion()" class="p-1 text-slate-400 hover:text-blue-500 transition">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+
+                <div class="text-center min-w-[60px]">
+                    <span class="text-xs font-black tracking-widest opacity-40 uppercase">4 / 10</span>
+                </div>
+
+                <button @click="nextQuestion()" class="p-1 text-slate-400 hover:text-blue-500 transition">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-1">
+                <button @click="confirm('Flag?')" class="p-2 text-slate-300 hover:text-red-500 transition">
+                    <i data-lucide="flag" class="w-5 h-5"></i>
+                </button>
+                <button @click="settingsOpen = true"
+                    class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition">
+                    <i data-lucide="settings" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 overflow-hidden">
+            <div class="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-500 ease-out"
+                :style="`width: ${progress}%`"></div>
+        </div>
+
+        <main class="flex-1 flex flex-col overflow-hidden">
+
+            <section class="flex flex-col flex-1 p-6 overflow-hidden transition-colors duration-300" :class="{
+        'bg-white text-slate-900': theme === 'light',
+        'bg-[#fdf6e3] text-[#5b4636]': theme === 'sepia',
+        'bg-slate-800 text-slate-100': theme === 'dark'
+    }">
+
+                <template x-if="showImage">
+                    <div
+                        class="w-full h-40 bg-slate-200/50 dark:bg-slate-700/50 rounded-xl mb-6 flex-shrink-0 overflow-hidden shadow-sm">
+                        <img src="https://via.placeholder.com/400x200" class="w-full h-full object-cover"
+                            alt="Question visual">
+                    </div>
+                </template>
+
+                <div class="flex-1 relative flex overflow-hidden">
+
+                    <div class="flex-1 overflow-y-auto custom-scroll pr-12 min-h-0">
+                        <h1 class="leading-tight whitespace-normal break-words transition-all duration-200" :style="{ 
+                    'font-family': fontFamily === 'mono' ? 'monospace' : (fontFamily === 'serif' ? 'serif' : 'sans-serif'),
+                    'font-size': fontSize + 'px' 
+                }">
+                            This is the question text. If the text is very long, it will scroll vertically here. Because
+                            the tools are pinned to the right, they won't move, making them "sticky" utilities for the
+                            user.
+                        </h1>
+                    </div>
+
+                    <div class="absolute right-0 top-0 flex flex-col gap-2 py-1">
+                        <button @click="playAudio()"
+                            class="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors text-blue-500">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                        </button>
+                        <button @click="translateQuestion()"
+                            class="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors text-blue-500">
+                            <i data-lucide="languages" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="p-6 border-t dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+
+                <div x-show="!answered" x-transition.opacity>
+                    <template x-if="questionType === 'multiple'">
+                        <div class="space-y-3">
+                            <button @click="answered = true"
+                                class="w-full p-4 text-left border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-500 transition">Defining
+                                a component scope</button>
+                            <button @click="answered = true"
+                                class="w-full p-4 text-left border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-500 transition">Handling
+                                click events</button>
+                        </div>
+                    </template>
+
+                    <template x-if="questionType === 'unscramble'">
+                        <div x-data="{ 
+    /* This logic would eventually be dynamic */
+    tiles: [
+        { id: 1, char: 'A' }, { id: 2, char: 'L' }, 
+        { id: 3, char: 'P' }, { id: 4, char: 'I' }, 
+        { id: 5, char: 'N' }, { id: 6, char: 'E' }
+    ],
+    userAnswer: [] 
+}" class="space-y-6">
+
+                            <div
+                                class="flex flex-wrap justify-center gap-2 min-h-[3rem] p-2 border-b-2 border-dashed border-slate-300 dark:border-slate-600">
+                                <template x-for="(tile, index) in userAnswer" :key="tile.id">
+                                    <button @click="tiles.push(tile); userAnswer.splice(index, 1)"
+                                        x-transition:enter="transition scale-90 duration-200"
+                                        class="w-10 h-12 flex items-center justify-center bg-blue-600 text-white rounded-lg font-bold text-lg shadow-md transform hover:-translate-y-1">
+                                        <span x-text="tile.char"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div class="flex flex-wrap justify-center gap-3">
+                                <template x-for="(tile, index) in tiles" :key="tile.id">
+                                    <button @click="userAnswer.push(tile); tiles.splice(index, 1)"
+                                        class="w-12 h-14 flex items-center justify-center bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-xl font-bold text-xl shadow-sm active:scale-95 transition-transform">
+                                        <span x-text="tile.char"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div class="pt-4">
+                                <button @click="answered = true" :disabled="tiles.length > 0"
+                                    :class="tiles.length > 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'"
+                                    class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold transition-colors">
+                                    Check Answer
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="questionType === 'text'">
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Type your answer..."
+                                class="flex-1 p-4 rounded-xl border-2 dark:bg-slate-800 dark:border-slate-700 outline-none focus:border-blue-500">
+                            <button @click="answered = true"
+                                class="px-6 bg-blue-600 text-white rounded-xl font-bold">Submit</button>
+                        </div>
+                    </template>
+                </div>
+
+                <div x-show="answered" x-cloak x-transition:enter.duration.500ms>
+                    <div
+                        class="flex items-start gap-4 p-4 bg-green-100 dark:bg-green-900/30 border border-green-500 rounded-xl">
+                        <i data-lucide="check-circle" class="text-green-600 shrink-0"></i>
+                        <div>
+                            <p class="font-bold text-green-800 dark:text-green-400">Correct!</p>
+                            <p class="text-sm opacity-80 leading-snug text-green-700 dark:text-green-300">`x-data`
+                                initializes a new component scope with a reactive data object.</p>
+                        </div>
+                    </div>
+                    <button @click="answered = false"
+                        class="w-full mt-4 py-3 bg-slate-800 dark:bg-slate-100 dark:text-slate-900 text-white rounded-xl font-bold uppercase tracking-wide">Next
+                        Question</button>
+                </div>
+
+            </section>
+        </main>
+
+        <div x-show="settingsOpen" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-300" x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="translate-x-full"
+            class="absolute inset-y-0 right-0 w-72 bg-white dark:bg-slate-800 shadow-2xl z-50 flex flex-col border-l dark:border-slate-700"
+            x-cloak>
+            <div class="flex justify-between items-center p-4 border-b dark:border-slate-700">
+                <i data-lucide="settings-2" class="w-5 h-5 opacity-50"></i>
+                <button @click="settingsOpen = false"
+                    class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-8 custom-scroll">
+                <button @click="showImage = !showImage"
+                    class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                    <i data-lucide="image" class="w-5 h-5" :class="showImage ? 'text-blue-500' : 'opacity-30'"></i>
+                    <div class="w-10 h-5 rounded-full bg-slate-300 dark:bg-blue-600 relative transition-colors">
+                        <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform"
+                            :class="showImage ? 'translate-x-5' : ''"></div>
+                    </div>
+                </button>
+
+                <button @click="playAudio = !playAudio"
+                    class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                    <i :data-lucide="playAudio ? 'volume-2' : 'volume-x'" class="w-5 h-5"
+                        :class="playAudio ? 'text-blue-500' : 'opacity-30'"></i>
+                    <div class="w-10 h-5 rounded-full bg-slate-300 dark:bg-blue-600 relative transition-colors">
+                        <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform"
+                            :class="playAudio ? 'translate-x-5' : ''"></div>
+                    </div>
+                </button>
+
+                <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                    <button @click="questionType = 'multiple'"
+                        :class="questionType === 'multiple' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'opacity-40'"
+                        class="py-3 flex justify-center rounded-lg transition">
+                        <i data-lucide="list-ordered" class="w-5 h-5"></i> </button>
+                    <button @click="questionType = 'unscramble'"
+                        :class="questionType === 'unscramble' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'opacity-40'"
+                        class="py-3 flex justify-center rounded-lg transition">
+                        <i data-lucide="grid-3x3" class="w-5 h-5"></i> </button>
+                    <button @click="questionType = 'text'"
+                        :class="questionType === 'text' ? 'bg-white dark:bg-slate-700 shadow-sm' : 'opacity-40'"
+                        class="py-3 flex justify-center rounded-lg transition">
+                        <i data-lucide="keyboard" class="w-5 h-5"></i> </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                        <button @click="fontFamily = 'sans'"
+                            :class="fontFamily === 'sans' ? 'bg-white dark:bg-slate-700' : 'opacity-40'"
+                            class="py-2 text-sm font-bold rounded-lg transition"
+                            style="font-family: sans-serif;">Sans</button>
+                        <button @click="fontFamily = 'serif'"
+                            :class="fontFamily === 'serif' ? 'bg-white dark:bg-slate-700' : 'opacity-40'"
+                            class="py-2 text-sm font-bold rounded-lg transition"
+                            style="font-family: serif;">Serif</button>
+                        <button @click="fontFamily = 'mono'"
+                            :class="fontFamily === 'mono' ? 'bg-white dark:bg-slate-700' : 'opacity-40'"
+                            class="py-2 text-sm font-bold rounded-lg transition"
+                            style="font-family: monospace;">Mono</button>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold">A</span>
+                        <input type="range" min="14" max="28" x-model="fontSize" class="flex-1 accent-blue-600">
+                        <span class="text-xl font-bold">A</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div>
+                        <div class="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                            <button @click="theme = 'light'"
+                                :class="theme === 'light' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-600' : 'opacity-40'"
+                                class="py-2 flex justify-center rounded-lg transition">
+                                <i data-lucide="sun" class="w-5 h-5"></i>
+                            </button>
+                            <button @click="theme = 'sepia'"
+                                :class="theme === 'sepia' ? 'bg-[#f4ecd8] text-[#5b4636] shadow-sm' : 'opacity-40'"
+                                class="py-2 flex justify-center rounded-lg transition">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                            </button>
+                            <button @click="theme = 'dark'"
+                                :class="theme === 'dark' ? 'bg-white dark:bg-slate-700 shadow-sm text-blue-400' : 'opacity-40'"
+                                class="py-2 flex justify-center rounded-lg transition">
+                                <i data-lucide="moon" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div x-show="settingsOpen" @click="settingsOpen = false" x-cloak
+            class="absolute inset-0 bg-black/20 backdrop-blur-sm z-40"></div>
+
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
