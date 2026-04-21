@@ -82,12 +82,6 @@
             font: inherit;
         }
 
-        input {
-            border: 1px solid var(--border);
-            background: var(--bg-app);
-            color: var(--text-main);
-        }
-
         /* Custom scrollbar */
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
@@ -162,6 +156,28 @@
             overflow: hidden;
         }
 
+        /* --- Deduplicated Action Positioning --- */
+        .relative-section {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding-right: 3rem;
+            /* Prevents text from overlapping absolute actions */
+            min-height: 4rem;
+        }
+
+        .quiz-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        /* --- Question View --- */
         .question-view {
             flex: 1;
             display: flex;
@@ -186,32 +202,13 @@
             object-fit: cover;
         }
 
-        .question-content {
-            flex: 1;
-            position: relative;
-            display: flex;
-            overflow: hidden;
-        }
-
         .question-text-container {
             flex: 1;
             overflow-y: auto;
-            padding-right: 3rem;
-            /* Space for absolute buttons */
         }
 
         .question-text-container h1 {
             font-weight: bold;
-        }
-
-        .question-tools {
-            position: absolute;
-            right: 0;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            padding: 0.25rem;
         }
 
         /* --- Answers Section --- */
@@ -219,6 +216,10 @@
             padding: 1.5rem;
             border-top: 1px solid var(--border);
             background: var(--bg-panel);
+        }
+
+        .answer-input-container {
+            flex-grow: 1;
         }
 
         .multiple-choice {
@@ -239,7 +240,7 @@
             justify-content: center;
             gap: 0.5rem;
             padding: 0.5rem;
-            min-height: 4rem;
+            min-height: 4.5rem;
             border-bottom: 2px dashed var(--border);
         }
 
@@ -253,6 +254,7 @@
         .text-input-group {
             display: flex;
             gap: 0.5rem;
+            width: 100%;
         }
 
         .text-input-group input {
@@ -260,7 +262,60 @@
             padding: 1rem;
             border-radius: 0.75rem;
             border: 2px solid var(--border);
+            background: var(--bg-app);
+            color: var(--text-main);
             outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .text-input-group input:focus {
+            border-color: var(--primary);
+        }
+
+        /* --- Result & Feedback --- */
+        .feedback-box {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            background: var(--bg-app);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .feedback-title {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-display {
+            font-family: monospace;
+            font-size: 1.125rem;
+            line-height: 1.5;
+            padding: 1rem;
+            background: var(--bg-panel);
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .status-match {
+            color: var(--text-success);
+        }
+
+        .status-deletion {
+            color: #ef4444;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .status-insertion {
+            color: var(--primary);
+            font-weight: bold;
+            background: rgba(37, 99, 235, 0.1);
+            padding: 0 0.25rem;
+            border-radius: 0.25rem;
         }
 
         /* --- Success Message --- */
@@ -286,7 +341,8 @@
             margin-top: 0.25rem;
         }
 
-        /* --- Settings Panel (Aside) --- */
+        /* --- Settings Panel (Aside) - Kept mostly as-is --- */
+        /* ... existing settings styles ... */
         .settings-panel {
             position: absolute;
             top: 0;
@@ -473,12 +529,7 @@
             border-radius: 0.5rem;
             font-weight: bold;
             font-size: 1.25rem;
-            transition: transform 0.1s;
-        }
-
-        .tile-blue {
-            background: var(--primary);
-            color: #fff;
+            transition: transform 0.1s, opacity 0.2s;
         }
 
         .tile-outline {
@@ -489,6 +540,15 @@
 
         .tile-outline:active {
             transform: scale(0.95);
+        }
+
+        .tile-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .tile-visible {
+            opacity: 1;
         }
 
         .icon-indicator {
@@ -572,8 +632,9 @@
             </nav>
 
             <div class="action-nav">
-                <button @click="settingsOpen = true" class="btn-icon text-primary"><i
-                        data-lucide="settings"></i></button>
+                <button @click="settingsOpen = true" class="btn-icon text-primary">
+                    <i data-lucide="settings"></i>
+                </button>
             </div>
         </header>
 
@@ -582,21 +643,19 @@
         </div>
 
         <main>
-            <article class="question-view">
-                <template x-if="showImage">
-                    <figure class="question-image">
-                        <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
-                    </figure>
-                </template>
+            <section class="question-view">
+                <figure x-show="showImage" class="question-image">
+                    <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
+                </figure>
 
-                <div class="question-content">
+                <div class="relative-section">
                     <div class="question-text-container custom-scroll">
                         <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }"
                             x-text="currentPage.questionText">...
                         </h1>
                     </div>
 
-                    <div class="question-tools">
+                    <div class="quiz-actions">
                         <a target="_blank" :href="translateUrl">
                             <button class="btn-icon text-primary"><i data-lucide="languages"></i></button>
                         </a>
@@ -611,60 +670,86 @@
                         </div>
                     </div>
                 </div>
-            </article>
+            </section>
 
             <section class="answer-view">
-                <div x-show="!answered" x-transition.opacity>
+                <div class="relative-section" x-show="!answered" x-transition.opacity>
 
-                    <template x-if="questionType === 'multiple'">
-                        <div class="multiple-choice">
-                            <button @click="submitAnswer()" class="btn-outline">Defining a component scope</button>
-                            <button @click="submitAnswer()" class="btn-outline">Handling click events</button>
-                        </div>
-                    </template>
+                    <div class="answer-input-container">
 
-                    <template x-if="questionType === 'unscramble'">
-                        <div class="unscramble-game">
-                            <div class="unscramble-dropzone">
-                                <template x-for="(tile, index) in userAnswer" :key="tile.id">
-                                    <button @click="tiles.push(tile); userAnswer.splice(index, 1)"
-                                        class="tile tile-blue">
-                                        <span x-text="tile.char"></span>
+                        <template x-if="questionType === 'multiple'">
+                            <div class="multiple-choice">
+                                <template x-for="(option, index) in mcOptions" :key="index">
+                                    <button class="btn-outline" x-show="!option.hidden"
+                                        @click="submitAnswer(option.text)" x-transition>
+                                        <span x-text="option.text"></span>
                                     </button>
                                 </template>
                             </div>
-                            <div class="unscramble-pool">
-                                <template x-for="(tile, index) in tiles" :key="tile.id">
-                                    <button @click="userAnswer.push(tile); tiles.splice(index, 1)"
-                                        class="tile tile-outline">
-                                        <span x-text="tile.char"></span>
-                                    </button>
-                                </template>
-                            </div>
-                            <button @click="checkUnscramble()" :disabled="tiles.length > 0" class="btn-primary">
-                                Check Answer
-                            </button>
-                        </div>
-                    </template>
+                        </template>
 
-                    <template x-if="questionType === 'text'">
-                        <div class="text-input-group">
-                            <input type="text" placeholder="Type your answer...">
-                            <button @click="submitAnswer()" class="btn-primary" style="width: auto;">Submit</button>
-                        </div>
-                    </template>
+                        <template x-if="questionType === 'unscramble'">
+                            <div class="unscramble-game">
+                                <div class="unscramble-dropzone custom-scroll">
+                                    <template x-for="(tile, index) in unscrambleDropzone" :key="'drop-' + index">
+                                        <button class="tile tile-outline" @click="
+                                    unscramblePool.find(p => p.id === tile.id).used = false;
+                                    unscrambleDropzone.splice(index, 1);
+                                ">
+                                            <span x-text="tile.char"></span>
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <div class="unscramble-pool">
+                                    <template x-for="tile in unscramblePool" :key="'pool-' + tile.id">
+                                        <button class="tile tile-outline"
+                                            @click="if(!tile.used) { tile.used = true; unscrambleDropzone.push({ ...tile }); }"
+                                            :class="tile.used ? 'tile-hidden' : 'tile-visible'">
+                                            <span x-text="tile.char"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="questionType === 'text'">
+                            <div class="text-input-group">
+                                <input type="text" x-model="userTextAnswer" placeholder="Type here..."
+                                    @keydown.enter="if(userTextAnswer) submitAnswer(userTextAnswer)">
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="quiz-actions">
+                        <button @click="triggerHint()" class="btn-icon text-primary" title="Hint">
+                            <i data-lucide="circle-help"></i>
+                        </button>
+
+                        <button @click="submitAnswer(userTextAnswer)" class="btn-icon text-primary"
+                            :disabled="questionType === 'text' && !userTextAnswer" title="Submit">
+                            <i data-lucide="send-horizontal"></i>
+                        </button>
+                    </div>
+
                 </div>
 
-                <div x-show="answered" x-cloak x-transition:enter.duration.500ms>
-                    <div class="success-box">
-                        <i data-lucide="check-circle"></i>
-                        <div>
-                            <strong>Correct!</strong>
-                            <p>`x-data` initializes a new component scope with a reactive data object.</p>
+                <div class="feedback-wrapper" x-show="answered" x-transition.opacity>
+                    <div class="feedback-box">
+                        <h3 class="feedback-title">Results:</h3>
+                        <div class="comparison-display custom-scroll">
+                            <template x-for="(chunk, index) in diffResult" :key="index">
+                                <span x-text="chunk.char" :class="{
+                            'status-match': chunk.type === 'match',
+                            'status-deletion': chunk.type === 'deletion',
+                            'status-insertion': chunk.type === 'insertion'
+                          }">
+                                </span>
+                            </template>
                         </div>
                     </div>
-                    <button @click="nextQuestion()" class="btn-primary">Next Question</button>
                 </div>
+
             </section>
         </main>
 
@@ -852,7 +937,12 @@
                     this.$watch('theme', () => lucide.createIcons());
                     this.$watch('currentIndex', (newVal) => {
                         this.pauseAudio();
+                        this.setupQuestion();
                     });
+                    this.$watch('questionType', (newVal) => {
+                        this.setupQuestion();
+                    });
+                    this.setupQuestion();
                     lucide.createIcons();
                 },
 
@@ -897,6 +987,141 @@
                                 this.audioPlaying = false;
                             });
                     }
+                },
+
+                answered: false,
+                diffResult: [],
+                mcOptions: [],
+                unscramblePool: [],
+                unscrambleDropzone: [],
+                userTextAnswer: '',
+
+                setupQuestion() {
+                    this.answered = false;
+                    this.diffResult = [];
+                    const answer = this.currentPage.answer;
+
+                    // Setup MC
+                    let allOptions = [answer, ...this.currentPage.distractors];
+                    this.mcOptions = this.shuffleArray(allOptions).map(opt => ({text: opt, hidden: false}));
+
+                    // Setup Unscramble
+                    let chars = answer.split('');
+                    this.unscramblePool = this.shuffleArray(chars).map((char, index) => ({id: index, char: char, used: false}));
+                    this.unscrambleDropzone = [];
+
+                    // Setup Text
+                    this.userTextAnswer = '';
+                },
+
+                submitAnswer(submittedText) {
+                    this.diffResult = this.getDiff(submittedText, this.currentPage.answer);
+                    this.answered = true;
+                },
+
+                submitUnscramble() {
+                    const submittedText = this.unscrambleDropzone.map(t => t.char).join('');
+                    this.submitAnswer(submittedText);
+                },
+
+                triggerHint() {
+                    if (this.questionType === 'multiple') {
+                        // Hide one incorrect distractor
+                        let incorrectAvailable = this.mcOptions.filter(o => o.text !== this.currentPage.answer && !o.hidden);
+                        if (incorrectAvailable.length > 0) {
+                            incorrectAvailable[0].hidden = true;
+                        }
+                    }
+                    else if (this.questionType === 'unscramble') {
+                        const answerChars = this.currentPage.answer.split('');
+
+                        // Find where the user made their first mistake
+                        let firstMistakeIdx = this.unscrambleDropzone.findIndex((tile, idx) => tile.char !== answerChars[idx]);
+
+                        if (firstMistakeIdx === -1) {
+                            // No mistake yet, but incomplete
+                            firstMistakeIdx = this.unscrambleDropzone.length;
+                            if (firstMistakeIdx === answerChars.length) return; // already perfectly solved
+                        }
+
+                        // Remove incorrect tile and EVERYTHING after it
+                        const removedTiles = this.unscrambleDropzone.splice(firstMistakeIdx);
+                        removedTiles.forEach(tile => {
+                            const poolTile = this.unscramblePool.find(p => p.id === tile.id);
+                            if (poolTile) poolTile.used = false;
+                        });
+
+                        // Add the next correct tile from the pool
+                        const nextCorrectChar = answerChars[firstMistakeIdx];
+                        const correctPoolTile = this.unscramblePool.find(t => !t.used && t.char === nextCorrectChar);
+
+                        if (correctPoolTile) {
+                            correctPoolTile.used = true;
+                            this.unscrambleDropzone.push({...correctPoolTile});
+                        }
+                    }
+                    else if (this.questionType === 'text') {
+                        const answer = this.currentPage.answer;
+                        let current = this.userTextAnswer || "";
+                        let correctPrefix = "";
+
+                        // Find longest correct prefix
+                        for (let i = 0; i < current.length; i++) {
+                            if (current[i] === answer[i]) {
+                                correctPrefix += current[i];
+                            } else {
+                                break;
+                            }
+                        }
+
+                        // Append next correct character
+                        if (correctPrefix.length < answer.length) {
+                            this.userTextAnswer = correctPrefix + answer[correctPrefix.length];
+                        }
+                    }
+                },
+
+                // --- UTILITIES ---
+                shuffleArray(array) {
+                    let arr = [...array];
+                    for (let i = arr.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    return arr;
+                },
+
+                getDiff(input, expected) {
+                    const n = input.length;
+                    const m = expected.length;
+                    const dp = Array(n + 1).fill(0).map(() => Array(m + 1).fill(0));
+
+                    for (let i = 1; i <= n; i++) {
+                        for (let j = 1; j <= m; j++) {
+                            if (input[i - 1] === expected[j - 1]) {
+                                dp[i][j] = dp[i - 1][j - 1] + 1;
+                            } else {
+                                dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                            }
+                        }
+                    }
+
+                    let i = n, j = m;
+                    const result = [];
+
+                    while (i > 0 || j > 0) {
+                        if (i > 0 && j > 0 && input[i - 1] === expected[j - 1]) {
+                            result.unshift({char: input[i - 1], type: 'match'});
+                            i--; j--;
+                        } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                            result.unshift({char: expected[j - 1], type: 'insertion'}); // missing from input
+                            j--;
+                        } else if (i > 0 && (j === 0 || dp[i][j - 1] < dp[i - 1][j])) {
+                            result.unshift({char: input[i - 1], type: 'deletion'}); // extra in input
+                            i--;
+                        }
+                    }
+                    return result;
                 },
 
 
