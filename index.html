@@ -179,10 +179,11 @@
 
         /* --- Question View --- */
         .question-view {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 1.5rem;
+            height: 100%;
+            /* Ensure the parent has height */
+            padding: 0.75rem;
             overflow: hidden;
         }
 
@@ -190,7 +191,7 @@
             width: 100%;
             height: 160px;
             flex-shrink: 0;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             border-radius: 0.75rem;
             overflow: hidden;
             background: var(--bg-panel);
@@ -205,10 +206,19 @@
         .question-text-container {
             flex: 1;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
-        .question-text-container h1 {
-            font-weight: bold;
+        /* This pushes the buttons to the bottom of the scrollable content */
+        .action-buttons-wrapper {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            /* Right align the buttons */
+            gap: 0.5rem;
+            align-items: center;
         }
 
         /* --- Answers Section --- */
@@ -216,6 +226,16 @@
             padding: 1.5rem;
             border-top: 1px solid var(--border);
             background: var(--bg-panel);
+            display: grid;
+            grid-template-areas: "stack";
+            align-items: start;
+        }
+
+        .answer-view {}
+
+        .answer-view>div {
+            grid-area: stack;
+            /* Both divs occupy the same space */
         }
 
         .answer-input-container {
@@ -295,9 +315,9 @@
             font-size: 1.125rem;
             line-height: 1.5;
             padding: 1rem;
-            background: var(--bg-panel);
             border-radius: 0.5rem;
             overflow-x: auto;
+            text-align: center;
         }
 
         .status-match {
@@ -620,8 +640,8 @@
 
         <header class="app-header">
             <div class="action-nav">
-                <button @click="flagOpen = true" class="btn-icon" :class="flagOpen ? 'text-primary' : ''">
-                    <i data-lucide="flag"></i>
+                <button onclick="history.back()" class="btn-icon">
+                    <i data-lucide="arrow-left"></i>
                 </button>
             </div>
 
@@ -648,32 +668,39 @@
                     <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
                 </figure>
 
-                <div class="relative-section">
-                    <div class="question-text-container custom-scroll">
-                        <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }"
-                            x-text="currentPage.questionText">...
-                        </h1>
-                    </div>
+                <div class="question-text-container custom-scroll" x-transition.opacity>
+                    <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }"
+                        x-text="currentPage.questionText">
+                    </h1>
 
-                    <div class="quiz-actions">
+                    <div class="action-buttons-wrapper">
                         <a target="_blank" :href="translateUrl">
-                            <button class="btn-icon text-primary"><i data-lucide="languages"></i></button>
+                            <button class="btn-icon"><i data-lucide="languages"></i></button>
                         </a>
-                        <div x-show="audioEnabled" style="display: flex;">
-                            <button x-show="!audioPlaying" @click="triggerAudio()" class="btn-icon text-primary">
+
+                        <div x-show="audioEnabled" style="display: inline-flex;">
+                            <button x-show="!audioPlaying" @click="triggerAudio()" class="btn-icon" x-cloak>
                                 <i data-lucide="volume-2"></i>
                             </button>
 
-                            <button x-show="audioPlaying" @click="pauseAudio()" class="btn-icon text-primary" x-cloak>
+                            <button x-show="audioPlaying" @click="pauseAudio()" class="btn-icon" x-cloak>
                                 <i data-lucide="pause"></i>
                             </button>
                         </div>
+
+                        <button @click="flagOpen = true" class="btn-icon">
+                            <i data-lucide="flag"></i>
+                        </button>
+
+                        <button @click="triggerHint()" class="btn-icon" title="Hint" :disabled="answered">
+                            <i data-lucide="circle-help"></i>
+                        </button>
                     </div>
                 </div>
             </section>
 
             <section class="answer-view">
-                <div class="relative-section" x-show="!answered" x-transition.opacity>
+                <div x-show="!answered" x-transition.opacity>
 
                     <div class="answer-input-container">
 
@@ -721,31 +748,32 @@
                         </template>
                     </div>
 
-                    <div class="quiz-actions">
-                        <button @click="triggerHint()" class="btn-icon text-primary" title="Hint">
-                            <i data-lucide="circle-help"></i>
-                        </button>
-
-                        <button @click="submitAnswer(userTextAnswer)" class="btn-icon text-primary"
-                            :disabled="questionType === 'text' && !userTextAnswer" title="Submit">
-                            <i data-lucide="send-horizontal"></i>
-                        </button>
-                    </div>
 
                 </div>
 
                 <div class="feedback-wrapper" x-show="answered" x-transition.opacity>
                     <div class="feedback-box">
-                        <h3 class="feedback-title">Results:</h3>
-                        <div class="comparison-display custom-scroll">
-                            <template x-for="(chunk, index) in diffResult" :key="index">
-                                <span x-text="chunk.char" :class="{
+                        <div class="comparison-display">
+                            <div x-show="!tooManyErrors()">
+                                <div>
+                                    <template x-for="(chunk, index) in diffResult" :key="index">
+                                        <span x-text="chunk.char" :class="{
                             'status-match': chunk.type === 'match',
                             'status-deletion': chunk.type === 'deletion',
                             'status-insertion': chunk.type === 'insertion'
-                          }">
-                                </span>
-                            </template>
+                        }"></span>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div x-show="tooManyErrors()">
+                                <span class="status-insertion" x-text="currentPage.answer"></span>
+                            </div>
+                            <button @click="nextQuestion()" class="btn-icon btn-primary">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+
+
                         </div>
                     </div>
                 </div>
@@ -892,7 +920,7 @@
 
                 settingsOpen: false,
                 showImage: true,
-                audioEnabled: false,
+                audioEnabled: true,
                 questionType: 'multiple',
 
                 audioPlaying: false,
@@ -911,7 +939,7 @@
                     {
                         imageUrl: "https://placehold.co/600x400?text=Hello+World",
                         audioUrl: "https://placeholder.guru/api/audio?type=speech",
-                        questionText: "ვხედავ",
+                        questionText: "This is some really long text that should be scrollable.This is some really long text that should be scrollable.This is some really long text that should be scrollable.This is some really long text that should be scrollable.This is some really long text that should be scrollable.This is some really long text that should be scrollable.",
                         answer: "answer1",
                         distractors: ["distractorA", "distractorB", "distX"]
                     },
@@ -1079,6 +1107,17 @@
                             this.userTextAnswer = correctPrefix + answer[correctPrefix.length];
                         }
                     }
+                },
+
+                tooManyErrors() {
+                    // Sum up deletions and insertions (non-matching characters)
+                    const errorCount = this.diffResult.reduce((count, chunk) => {
+                        return (chunk.type === 'deletion' || chunk.type === 'insertion')
+                            ? count + 1
+                            : count;
+                    }, 0);
+
+                    return errorCount > 3;
                 },
 
                 // --- UTILITIES ---
