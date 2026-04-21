@@ -598,10 +598,11 @@
                     </div>
 
                     <div class="question-tools">
-                        <button @click="triggerAudio()" class="btn-icon text-primary"><i
-                                data-lucide="volume-2"></i></button>
-                        <button @click="translateQuestion()" class="btn-icon text-primary"><i
-                                data-lucide="languages"></i></button>
+                        <a target="_blank"
+                            href="https://translate.google.com/?sl=ka&tl=en&text=%E1%83%AE%E1%83%94%E1%83%93%E1%83%90%E1%83%95&op=translate"><button
+                                class="btn-icon text-primary"><i data-lucide="languages"></i></button></a>
+                        <div x-show="audioEnabled" <button @click="triggerAudio()" class="btn-icon text-primary"><i
+                                data-lucide="volume-2"></i></button></div>
                     </div>
                 </div>
             </article>
@@ -797,14 +798,17 @@
             return {
                 flagOpen: false,
                 flagReason: 'inaccurate',
+
                 settingsOpen: false,
-                answered: false,
-                questionType: 'multiple',
                 showImage: true,
                 audioEnabled: false,
-                fontSize: 18,
+                questionType: 'multiple',
+
                 fontFamily: 'sans',
+                fontSize: 18,
                 theme: 'light',
+
+                answered: false,
                 currentStep: 4,
                 totalSteps: 10,
 
@@ -864,9 +868,6 @@
                     }
                 },
 
-                translateQuestion() {
-                    alert("Translating question...");
-                }
             }
         }
     </script>
