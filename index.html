@@ -558,7 +558,9 @@
     <div class="app-container">
 
         <header class="app-header">
-            <a href="library"><button class="btn-icon"><i data-lucide="x"></i></button></a>
+            <div class="action-nav">
+                <button @click="confirm('Flag question?')" class="btn-icon"><i data-lucide="flag"></i></button>
+            </div>
 
             <nav class="step-nav">
                 <button @click="prevQuestion()" class="btn-icon"><i data-lucide="chevron-left"></i></button>
@@ -567,7 +569,6 @@
             </nav>
 
             <div class="action-nav">
-                <button @click="confirm('Flag question?')" class="btn-icon"><i data-lucide="flag"></i></button>
                 <button @click="settingsOpen = true" class="btn-icon text-primary"><i
                         data-lucide="settings"></i></button>
             </div>
