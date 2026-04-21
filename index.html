@@ -567,7 +567,7 @@
 
             <nav class="step-nav">
                 <button @click="prevQuestion()" class="btn-icon"><i data-lucide="chevron-left"></i></button>
-                <div class="step-indicator" x-text="`${currentStep} / ${totalSteps}`"></div>
+                <div class="step-indicator" x-text="`${currentIndex + 1} / ${lastIndex +1}`"></div>
                 <button @click="nextQuestion()" class="btn-icon"><i data-lucide="chevron-right"></i></button>
             </nav>
 
@@ -578,31 +578,37 @@
         </header>
 
         <div class="progress-bar">
-            <div class="progress-fill" :style="`width: ${(currentStep / totalSteps) * 100}%`"></div>
+            <div class="progress-fill" :style="`width: ${((currentIndex+1) / (lastIndex+1)) * 100}%`"></div>
         </div>
 
         <main>
             <article class="question-view">
                 <template x-if="showImage">
                     <figure class="question-image">
-                        <img src="https://via.placeholder.com/400x200" alt="Question visual">
+                        <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
                     </figure>
                 </template>
 
                 <div class="question-content">
                     <div class="question-text-container custom-scroll">
-                        <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }">
-                            This is the question text. It adapts cleanly based on the typography settings in the
-                            sidebar. Can you solve it?
+                        <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }"
+                            x-text="currentPage.questionText">...
                         </h1>
                     </div>
 
                     <div class="question-tools">
-                        <a target="_blank"
-                            href="https://translate.google.com/?sl=ka&tl=en&text=%E1%83%AE%E1%83%94%E1%83%93%E1%83%90%E1%83%95&op=translate"><button
-                                class="btn-icon text-primary"><i data-lucide="languages"></i></button></a>
-                        <div x-show="audioEnabled" <button @click="triggerAudio()" class="btn-icon text-primary"><i
-                                data-lucide="volume-2"></i></button></div>
+                        <a target="_blank" :href="translateUrl">
+                            <button class="btn-icon text-primary"><i data-lucide="languages"></i></button>
+                        </a>
+                        <div x-show="audioEnabled" style="display: flex;">
+                            <button x-show="!audioPlaying" @click="triggerAudio()" class="btn-icon text-primary">
+                                <i data-lucide="volume-2"></i>
+                            </button>
+
+                            <button x-show="audioPlaying" @click="pauseAudio()" class="btn-icon text-primary" x-cloak>
+                                <i data-lucide="pause"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -804,23 +810,49 @@
                 audioEnabled: false,
                 questionType: 'multiple',
 
+                audioPlaying: false,
+                currentAudio: null,
+
                 fontFamily: 'sans',
                 fontSize: 18,
                 theme: 'light',
 
-                answered: false,
-                currentStep: 4,
-                totalSteps: 10,
-
-                tiles: [
-                    {id: 1, char: 'A'}, {id: 2, char: 'L'}, {id: 3, char: 'P'},
-                    {id: 4, char: 'I'}, {id: 5, char: 'N'}, {id: 6, char: 'E'}
+                questionLang: "ka",
+                nativeLang: "en",
+                get translateUrl() {
+                    return `https://translate.google.com/?sl=${this.questionLang}&tl=${this.nativeLang}&text=${this.currentPage.questionText}&op=translate`
+                },
+                pages: [
+                    {
+                        imageUrl: "https://placehold.co/600x400?text=Hello+World",
+                        audioUrl: "https://placeholder.guru/api/audio?type=speech",
+                        questionText: "ვხედავ",
+                        answer: "answer1",
+                        distractors: ["distractorA", "distractorB", "distX"]
+                    },
+                    {
+                        imageUrl: "https://placehold.co/600x400?text=Page2",
+                        audioUrl: "https://placeholder.guru/api/audio?type=speech",
+                        questionText: "Question 2 text",
+                        answer: "answer2",
+                        distractors: ["distractorC", "distractorD"]
+                    }
                 ],
-                userAnswer: [],
+
+                currentIndex: 0,
+                get currentPage() {
+                    return this.pages[this.currentIndex];
+                },
+                get lastIndex() {
+                    return this.pages.length - 1;
+                },
+
 
                 init() {
                     this.$watch('theme', () => lucide.createIcons());
-                    this.$watch('questionType', () => {this.answered = false; this.resetUnscramble();});
+                    this.$watch('currentIndex', (newVal) => {
+                        this.pauseAudio();
+                    });
                     lucide.createIcons();
                 },
 
@@ -831,42 +863,47 @@
                 },
 
                 nextQuestion() {
-                    if (this.currentStep < this.totalSteps) this.currentStep++;
-                    this.answered = false;
-                    this.resetUnscramble();
+                    if (this.currentIndex < this.lastIndex) this.currentIndex++;
                 },
-
                 prevQuestion() {
-                    if (this.currentStep > 1) this.currentStep--;
-                    this.answered = false;
+                    if (this.currentIndex > 0) this.currentIndex--;
                 },
 
-                submitAnswer() {
-                    this.answered = true;
-                },
-
-                checkUnscramble() {
-                    const answer = this.userAnswer.map(t => t.char).join('');
-                    if (answer === 'ALPINE') {
-                        this.submitAnswer();
-                    } else {
-                        alert('Incorrect. Try again!');
-                        this.resetUnscramble();
-                    }
-                },
-
-                resetUnscramble() {
-                    this.tiles = [...this.tiles, ...this.userAnswer].sort((a, b) => a.id - b.id);
-                    this.userAnswer = [];
+                pauseAudio() {
+                    if (!this.currentAudio) return;
+                    this.currentAudio.pause();
+                    this.currentAudio.currentTime = 0;
+                    this.audioPlaying = false;
                 },
 
                 triggerAudio() {
-                    if (this.audioEnabled) {
-                        alert("Playing audio hint...");
-                    } else {
-                        alert("Audio is muted in settings.");
+                    this.pauseAudio();
+                    //Play the audio if a URL exists
+                    if (this.currentPage?.audioUrl) {
+                        // Create new audio instance
+                        this.currentAudio = new Audio(this.currentPage.audioUrl);
+
+                        // Listen for when the audio finishes naturally
+                        this.currentAudio.onended = () => {
+                            this.audioPlaying = false;
+                        };
+
+                        this.currentAudio.play()
+                            .then(() => {
+                                this.audioPlaying = true;
+                            })
+                            .catch(err => {
+                                console.log("Playback error:", err);
+                                this.audioPlaying = false;
+                            });
                     }
                 },
+
+
+                finishQuiz() {
+
+                },
+
 
             }
         }
