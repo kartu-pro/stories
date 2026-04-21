@@ -39,8 +39,8 @@
                     <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
                 </figure>
 
-                <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }"
-                    x-text="currentPage.questionText"></h1>
+                <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }" x-html="displayText">
+                </h1>
 
                 <div class="question-actions">
                     <a target="_blank" :href="translateUrl"><button class="btn-icon"><i
