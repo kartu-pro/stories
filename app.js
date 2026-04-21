@@ -4,16 +4,16 @@ function quizApp() {
         flagReason: 'inaccurate',
 
         settingsOpen: false,
-        showImage: true,
-        audioEnabled: true,
-        questionType: 'multiple',
+        showImage: localStorage.getItem('quiz_showImage') !== 'false', 
+        audioEnabled: localStorage.getItem('quiz_audioEnabled') !== 'false',
+        questionType: localStorage.getItem('quiz_questionType') || 'multiple',
 
         audioPlaying: false,
         currentAudio: null,
 
-        fontFamily: 'sans',
-        fontSize: 18,
-        theme: 'light',
+        fontFamily: localStorage.getItem('quiz_fontFamily') || 'sans',
+        fontSize: parseInt(localStorage.getItem('quiz_fontSize')) || 18,
+        theme: localStorage.getItem('quiz_theme') || 'light',
 
         questionLang: "ka",
         nativeLang: "en",
@@ -22,18 +22,74 @@ function quizApp() {
         },
         pages: [
             {
-                imageUrl: "https://placehold.co/600x400?text=Hello+World",
-                audioUrl: "https://placeholder.guru/api/audio?type=speech",
-                question: "Some answer12 answer1 here",
-                answer: "answer1",
-                distractors: ["distractorA", "distractorB", "distX"]
+                imageUrl: "",
+                audioUrl: "",
+                question: "ახლა მე სამზარეულოში ვდგავარ და ფანჯარაში ვიყურები.",
+                answer: "ვდგავარ",
+                distractors: ["დგას", "ვიყურები", "ვზივარ"]
             },
             {
-                imageUrl: "https://placehold.co/600x400?text=Page2",
-                audioUrl: "https://placeholder.guru/api/audio?type=speech",
-                question: "Question 2 text",
-                answer: "answer2",
-                distractors: ["distractorC", "distractorD"]
+                imageUrl: "",
+                audioUrl: "",
+                question: "ჩემი და აივანზეა და მეკითხება: „როდის მოვლენ სტუმრები?“.",
+                answer: "მოვლენ",
+                distractors: ["მოვა", "მოვალთ", "მოდიან"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მე ვპასუხობ, რომ ისინი გზაში არიან და ალბათ ხუთ წუთში მოვლენ.",
+                answer: "მოვლენ",
+                distractors: ["მოვალ", "მოვიდნენ", "მოდიოდნენ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "შარშან, როცა დაბადების დღეს ავღნიშნავდი, ყველა სტუმარი ზუსტად დროსზე მოვიდა.",
+                answer: "მოვიდა",
+                distractors: ["მოვიდნენ", "მოდიოდა", "მოვედი"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მაშინ ბევრი ხალხი მოდიოდა და სახლში დიდი ხმაური იყო.",
+                answer: "მოდიოდა",
+                distractors: ["მოდიოდნენ", "მოვედით", "მიდიოდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "სანამ ვსაუბრობდით, ჩემი ძმაც მოვიდა და საჩუქრები მოიტანა.",
+                answer: "მოვიდა",
+                distractors: ["მოხვედი", "მოიტანა", "მოვიდნენ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "უცებ ეზოში მანქანა გაჩერდა.",
+                answer: "გაჩერდა",
+                distractors: ["გაჩერდნენ", "მივიდა", "დადგა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "„შეხედე, ნინო მოდის!“ — დაიყვირა ჩემმა დამ.",
+                answer: "მოდის",
+                distractors: ["მოდიან", "მოვალ", "მიდის"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მართლაც, ნინო ნელა მოდიოდა და დიდ ჩანთებს მოათრევდა.",
+                answer: "მოდიოდა",
+                distractors: ["მოდიოდი", "მოდიან", "მოვიდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "კარები გავაღე და მას ღიმილით ვუთხარი: „რა კარგია, რომ ასე ადრე მოხვედი!“.",
+                answer: "მოხვედი",
+                distractors: ["მოხვედით", "მოხვედი", "მოვიდა"]
             }
         ],
 
@@ -51,9 +107,11 @@ function quizApp() {
             // 2. Escape special regex characters in the answer (like ?, ., *)
             const escapedAnswer = this.currentPage.answer.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-            // 3. Create a Regex with word boundaries (\b) 
-            // This prevents "cat" from being replaced inside "category"
-            const regex = new RegExp(`\\b${escapedAnswer}\\b`, 'gi');
+            // 3. Use a Regex that looks for the answer NOT preceded or followed by other letters
+            // This works across different alphabets (Georgian, Cyrillic, etc.)
+            // (?<!\p{L}) means "not preceded by a letter"
+            // (?!\p{L}) means "not followed by a letter"
+            const regex = new RegExp(`(?<!\\p{L})${escapedAnswer}(?!\\p{L})`, 'gui');
 
             // 4. Return the text with the styled placeholder
             return this.currentPage.question.replace(regex, `<span style="color: var(--primary); text-decoration:underline;text-decoration-thickness:3px">___</span>`);
@@ -61,12 +119,21 @@ function quizApp() {
 
 
         init() {
-            this.$watch('theme', () => lucide.createIcons());
+            this.$watch('showImage', val => localStorage.setItem('quiz_showImage', val));
+            this.$watch('audioEnabled', val => localStorage.setItem('quiz_audioEnabled', val));
+            this.$watch('fontFamily', val => localStorage.setItem('quiz_fontFamily', val));
+            this.$watch('fontSize', val => localStorage.setItem('quiz_fontSize', val));
+
+            this.$watch('theme', (val) => {
+                localStorage.setItem('quiz_theme', val);
+                lucide.createIcons();
+            });
             this.$watch('currentIndex', (newVal) => {
                 this.pauseAudio();
                 this.setupQuestion();
             });
             this.$watch('questionType', (newVal) => {
+                localStorage.setItem('quiz_questionType', val);
                 this.setupQuestion();
             });
             this.setupQuestion();
