@@ -153,7 +153,7 @@ function quizApp() {
 
             // Setup MC
             let allOptions = [answer, ...this.currentPage.distractors];
-            this.mcOptions = this.shuffleArray(allOptions).map(opt => ({text: opt, hidden: false}));
+            this.mcOptions = this.shuffleArray(allOptions).slice(0, 4).map(opt => ({text: opt, hidden: false}));
 
             // Setup Unscramble
             let chars = answer.split('');
