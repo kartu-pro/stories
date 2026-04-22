@@ -102,6 +102,7 @@ input {
     flex-direction: column;
     position: relative;
     overflow: hidden;
+    min-height: 100dvh;
 }
 
 .app-header {
@@ -185,6 +186,7 @@ main {
     border-top: 1px solid var(--border);
     background: var(--bg-panel);
     max-height: 50vh;
+    overflow-y: auto;
 }
 
 /* --- Answer Module Semantics --- */
