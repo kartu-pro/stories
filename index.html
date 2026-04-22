@@ -19,7 +19,16 @@
     <div class="app-container">
 
         <header class="app-header">
-            <button onclick="history.back()" class="btn-icon"><i data-lucide="arrow-left"></i></button>
+            <button @click="if (!confirmExit) { 
+                    confirmExit = true; 
+                    setTimeout(() => confirmExit = false, 3000); 
+                } else { 
+                    history.back(); 
+                }" class="btn-icon" :class="{ 'btn-confirm-active': confirmExit }">
+                <i data-lucide="arrow-left" x-show="!confirmExit"></i>
+
+                <i data-lucide="x" x-show="confirmExit" style="color: #ef4444;" x-cloak></i>
+            </button>
             <nav class="step-nav">
                 <button @click="prevQuestion()" class="btn-icon"><i data-lucide="chevron-left"></i></button>
                 <div class="step-text" x-text="`${currentIndex + 1} / ${lastIndex +1}`"></div>
