@@ -25,7 +25,8 @@ function quizApp() {
         loading: true,
         apiUrl: 'https://script.google.com/macros/s/AKfycbxr2lLYd4-M8mmc7IAmkwoSvYdIT13O3J_JJlB420-5C3v8nyPmy8aAqA5KlACcl6o9/exec',
 
-        currentIndex: parseInt(localStorage.getItem('quiz_currentIndex')) || 0,
+        //currentIndex: parseInt(localStorage.getItem('quiz_currentIndex')) || 0,
+        currentIndex: 0,
         get currentPage() {
             return this.pages[this.currentIndex];
         },
