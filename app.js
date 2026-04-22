@@ -1,5 +1,6 @@
 function quizApp() {
     return {
+        confirmExit: false,
         flagOpen: false,
         flagReason: 'inaccurate',
 
@@ -20,190 +21,9 @@ function quizApp() {
         get translateUrl() {
             return `https://translate.google.com/?sl=${this.questionLang}&tl=${this.nativeLang}&text=${this.currentPage.question}&op=translate`
         },
-        pages: [
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "ახლა მე სამზარეულოში ვდგავარ და ფანჯარაში ვიყურები.",
-                answer: "ვდგავარ",
-                distractors: ["დგას", "ვიყურები", "ვზივარ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "ჩემი და აივანზეა და მეკითხება: „როდის მოვლენ სტუმრები?“.",
-                answer: "მოვლენ",
-                distractors: ["მოვა", "მოვალთ", "მოდიან"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მე ვპასუხობ, რომ ისინი გზაში არიან და ალბათ ხუთ წუთში მოვლენ.",
-                answer: "მოვლენ",
-                distractors: ["მოვალ", "მოვიდნენ", "მოდიოდნენ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "შარშან, როცა დაბადების დღეს ავღნიშნავდი, ყველა სტუმარი ზუსტად დროსზე მოვიდა.",
-                answer: "მოვიდა",
-                distractors: ["მოვიდნენ", "მოდიოდა", "მოვედი"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მაშინ ბევრი ხალხი მოდიოდა და სახლში დიდი ხმაური იყო.",
-                answer: "მოდიოდა",
-                distractors: ["მოდიოდნენ", "მოვედით", "მიდიოდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "სანამ ვსაუბრობდით, ჩემი ძმაც მოვიდა და საჩუქრები მოიტანა.",
-                answer: "მოვიდა",
-                distractors: ["მოხვედი", "მოიტანა", "მოვიდნენ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "უცებ ეზოში მანქანა გაჩერდა.",
-                answer: "გაჩერდა",
-                distractors: ["გაჩერდნენ", "მივიდა", "დადგა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "„შეხედე, ნინო მოდის!“ — დაიყვირა ჩემმა დამ.",
-                answer: "მოდის",
-                distractors: ["მოდიან", "მოვალ", "მიდის"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მართლაც, ნინო ნელა მოდიოდა და დიდ ჩანთებს მოათრევდა.",
-                answer: "მოდიოდა",
-                distractors: ["მოდიოდი", "მოდიან", "მოვიდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "კარები გავაღე და მას ღიმილით ვუთხარი: „რა კარგია, რომ ასე ადრე მოხვედი!“.",
-                answer: "მოხვედი",
-                distractors: ["მოხვედით", "მოხვედი", "მოვიდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "ჩემი და აივანზეა და მეკითხება: „როდის ____ სტუმრები თბილისში?“",
-                answer: "წავლენ",
-                distractors: ["წავა", "მიდიან", "წავედით"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მე ვპასუხობ, რომ ავტობუსი მალე მოვა და ისინი ალბათ ხუთ წუთში ____.",
-                answer: "წავლენ",
-                distractors: ["წავიდა", "მიდის", "წავალთ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "შარშან, როცა მთაში ვმოგზაურობდით, ყველა დილის რვა საათზე ____.",
-                answer: "წავიდა",
-                distractors: ["წავიდნენ", "მიდიოდა", "წავლენ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მაშინ ყველა სტუდენტი სოფლიდან ერთად ____ და გზაში ბევრს ვმღეროდით.",
-                answer: "მიდიოდა",
-                distractors: ["მიდიოდნენ", "წავიდა", "წავლენ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "სანამ მზე ამოვიდოდა, ჩემი ძმაც ____ სადგურში.",
-                answer: "წავიდა",
-                distractors: ["მიდის", "წავიდნენ", "წავა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "„შეხედე, ნინო უკვე ____!“ — დაიყვირა ჩემმა დამ.",
-                answer: "მიდის",
-                distractors: ["წავიდა", "მიდიოდა", "წავა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მართლაც, ნინო ნელა ____ ჭიშკრისკენ და დიდ ჩანთებს მოათრევდა.",
-                answer: "მიდიოდა",
-                distractors: ["მიდის", "წავიდა", "წავიდნენ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "კარები გავაღე და მას დავუძახე: „გაჩერდი, შენ რატომ ასე ადრე ____?“",
-                answer: "წახვედი",
-                distractors: ["წავიდა", "მიდიხარ", "წახვალ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "ჩემი მეგობარი, ლუკა, პარიზში ____.",
-                answer: "მიდის",
-                distractors: ["მოდის", "მიდიოდა", "წავიდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მე ვეუბნები: „იმედია, მალე უკან ____!“",
-                answer: "მოხვალ",
-                distractors: ["წახვალ", "მოვა", "მოხვედი"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: " ",
-                question: "ლუკა მპასუხობს, რომ ის აუცილებლად ____ ზაფხულში.",
-                answer: "მოვა",
-                distractors: ["მიდის", "მოვალ", "მოვიდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "როცა ლუკა ____, მე ცოტათი მოვიწყინე.",
-                answer: "მიდიოდა",
-                distractors: ["მოდიოდა", "მიდის", "წავიდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "გამახსენდა, როგორ ____ აქ ერთად შარშან.",
-                answer: "მოვდიოდით",
-                distractors: ["მივდიოდით", "მოვედით", "მოვდიოდი"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მაშინ ბევრი ხალხი ____ და მიდიოდა, სადგური სავსე იყო.",
-                answer: "მოდიოდა",
-                distractors: ["მოდიან", "მოვიდა", "მიდიოდა"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "ჩემმა დამ მითხრა, რომ სტუმრები უკვე სახლში ____.",
-                answer: "მოვიდნენ",
-                distractors: ["მოვიდა", "მოდიან", "წავიდნენ"]
-            },
-            {
-                imageUrl: "",
-                audioUrl: "",
-                question: "მეც სწრაფად ____ სადგურიდან, რადგან არ მინდოდა დაგვიანება.",
-                answer: "წავედი",
-                distractors: ["მივდიოდი", "წავიდა", "მოვედი"]
-            }
-        ],
+        pages: [],
+        loading: true,
+        apiUrl: 'https://script.google.com/macros/s/AKfycbxr2lLYd4-M8mmc7IAmkwoSvYdIT13O3J_JJlB420-5C3v8nyPmy8aAqA5KlACcl6o9/exec',
 
         currentIndex: parseInt(localStorage.getItem('quiz_currentIndex')) || 0,
         get currentPage() {
@@ -230,7 +50,31 @@ function quizApp() {
         },
 
 
-        init() {
+        async init() {
+            // Get storyUuid from the URL query string (?id=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const storyUuid = urlParams.get('id');
+
+            if (storyUuid) {
+                try {
+                    const response = await fetch(`${this.apiUrl}?action=getSentences&storyUuid=${storyUuid}`);
+                    const data = await response.json();
+                    
+                    if (data && !data.error) {
+                        this.pages = data;
+                        this.setupQuestion();
+                        // CRITICAL: Wait for Alpine to render the DOM then refresh icons
+                        this.$nextTick(() => {
+                            if (window.lucide) lucide.createIcons();
+                        });
+                    }
+                } catch (error) {
+                    console.error("Failed to load story sentences:", error);
+                } finally {
+                    this.loading = false;
+                }
+            }
+
             this.$watch('showImage', val => localStorage.setItem('quiz_showImage', val));
             this.$watch('audioEnabled', val => localStorage.setItem('quiz_audioEnabled', val));
             this.$watch('fontFamily', val => localStorage.setItem('quiz_fontFamily', val));
@@ -249,8 +93,6 @@ function quizApp() {
                 localStorage.setItem('quiz_questionType', val);
                 this.setupQuestion();
             });
-            this.setupQuestion();
-            lucide.createIcons();
         },
 
         getFontFamily() {
@@ -483,16 +325,17 @@ function quizApp() {
         },
     }
 }
-
 if (window.visualViewport) {
     const resizeHandler = () => {
         const container = document.querySelector('.app-container');
         if (container) {
-            container.style.height = `${window.visualViewport.height}px`;
+            // Use offsetHeight or visualViewport height
+            const height = window.visualViewport.height;
+            container.style.height = `${height}px`;
         }
     };
 
     window.visualViewport.addEventListener('resize', resizeHandler);
-    // Run it immediately to set the initial correct height
+    window.visualViewport.addEventListener('scroll', resizeHandler); // Helps on some mobile browsers
     resizeHandler();
 }

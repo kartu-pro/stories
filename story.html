@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storyline</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="app.js"></script>
+
+
+</head>
+
+<body :class="'theme-' + theme" x-data="quizApp()" @keydown.window="handleKeyDown($event)">
+
+    <div class="app-container">
+
+        <div x-show="loading" class="full-screen-center">
+            <p class="animate-pulse">Loading story sentences...</p>
+        </div>
+
+        <div x-show="!loading && pages.length === 0" class="full-screen-center">
+            <p>No sentences found for this story.</p>
+        </div>
+
+        <div x-show="!loading && pages.length > 0" class="main-container">
+            <header class="app-header">
+                <button @click="if (!confirmExit) { 
+                    confirmExit = true; 
+                    setTimeout(() => confirmExit = false, 3000); 
+                } else { 
+                    history.back(); 
+                }" class="btn-icon" :class="{ 'btn-confirm-active': confirmExit }">
+                    <i data-lucide="arrow-left" x-show="!confirmExit"></i>
+
+                    <i data-lucide="x" x-show="confirmExit" style="color: #ef4444;" x-cloak></i>
+                </button>
+                <nav class="step-nav">
+                    <button @click="prevQuestion()" class="btn-icon"><i data-lucide="chevron-left"></i></button>
+                    <div class="step-text" x-text="`${currentIndex + 1} / ${lastIndex +1}`"></div>
+                    <button @click="nextQuestion()" class="btn-icon"><i data-lucide="chevron-right"></i></button>
+                </nav>
+                <button @click="settingsOpen = true" class="btn-icon"><i data-lucide="settings"></i></button>
+            </header>
+
+            <div class="progress-bar">
+                <div class="progress-fill" :style="`width: ${((currentIndex+1) / (lastIndex+1)) * 100}%`"></div>
+            </div>
+
+            <main>
+
+                <section class="question-view custom-scroll" x-transition.opacity>
+                    <figure x-show="showImage" class="question-image">
+                        <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
+                    </figure>
+
+                    <h1 :style="{ 'font-family': getFontFamily(), 'font-size': fontSize + 'px' }" x-html="displayText">
+                    </h1>
+
+                    <div class="question-actions">
+                        <a target="_blank" :href="translateUrl"><button class="btn-icon"><i
+                                    data-lucide="languages"></i></button></a>
+                        <div x-show="audioEnabled" style="display:flex;">
+                            <button x-show="!audioPlaying" @click="triggerAudio()" class="btn-icon" x-cloak><i
+                                    data-lucide="volume-2"></i></button>
+                            <button x-show="audioPlaying" @click="pauseAudio()" class="btn-icon" x-cloak><i
+                                    data-lucide="pause"></i></button>
+                        </div>
+                        <button @click="flagOpen = true" class="btn-icon"><i data-lucide="flag"></i></button>
+                        <button @click="triggerHint()" class="btn-icon" title="Hint" :disabled="answered"><i
+                                data-lucide="circle-help"></i></button>
+                    </div>
+                </section>
+
+                <section class="answer-view custom-scroll">
+                    <div x-show="!answered" x-transition.opacity>
+
+                        <template x-if="questionType === 'multiple'">
+                            <div class="mc-options">
+                                <template x-for="(option, index) in mcOptions" :key="index">
+                                    <button class="btn-outline" x-show="!option.hidden"
+                                        @click="submitAnswer(option.text)" x-transition>
+                                        <span x-text="option.text"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="questionType === 'unscramble'">
+                            <div class="unscramble-game">
+                                <div class="unscramble-dropzone custom-scroll">
+                                    <template x-for="(tile, index) in unscrambleDropzone" :key="'drop-' + index">
+                                        <button class="tile"
+                                            @click="unscramblePool.find(p => p.id === tile.id).used = false; unscrambleDropzone.splice(index, 1);">
+                                            <span x-text="tile.char"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div class="unscramble-pool">
+                                    <template x-for="tile in unscramblePool" :key="'pool-' + tile.id">
+                                        <button class="tile" @click="if(!tile.used) { 
+                                            tile.used = true;
+                                            unscrambleDropzone.push({ ...tile });
+                                            if (unscrambleDropzone.length == unscramblePool.length) {
+                                                submitUnscramble();
+                                            }
+                                        }" :class="tile.used ? 'tile-hidden' : ''">
+                                            <span x-text="tile.char"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="questionType === 'text'">
+                            <input type="text" class="text-input" x-model="userTextAnswer" placeholder="Type here..."
+                                @keydown.enter="if(userTextAnswer) submitAnswer(userTextAnswer)">
+                        </template>
+
+                    </div>
+
+                    <div x-show="answered" x-transition.opacity x-cloak>
+                        <div class="feedback-box">
+                            <div class="diff-display">
+                                <div x-show="!tooManyErrors()">
+                                    <template x-for="(chunk, index) in diffResult" :key="index">
+                                        <span x-text="chunk.char"
+                                            :class="{'status-match': chunk.type === 'match', 'status-deletion': chunk.type === 'deletion', 'status-insertion': chunk.type === 'insertion'}"></span>
+                                    </template>
+                                </div>
+                                <div x-show="tooManyErrors()">
+                                    <span class="status-insertion" x-text="currentPage.answer"></span>
+                                </div>
+                            </div>
+
+                            <button @click="nextQuestion()" class="btn btn-primary">
+                                <span>Next Question</span>
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <aside class="panel-aside" x-show="flagOpen" x-transition:enter="slide-transition"
+                x-transition:enter-start="slide-hidden" x-transition:enter-end="slide-visible"
+                x-transition:leave="slide-transition" x-transition:leave-start="slide-visible"
+                x-transition:leave-end="slide-hidden" x-cloak>
+                <header class="panel-header">
+                    <span style="display: flex; gap: 0.5rem; opacity: 0.6"><i data-lucide="flag"></i> Report
+                        Issue</span>
+                    <button @click="flagOpen = false" class="btn-icon"><i data-lucide="x"></i></button>
+                </header>
+                <div class="panel-content custom-scroll">
+                    <div class="toggle-group">
+                        <button @click="flagReason = 'inaccurate'" :class="{'active': flagReason === 'inaccurate'}"
+                            class="btn-toggle"><i data-lucide="info"></i></button>
+                        <button @click="flagReason = 'broken'" :class="{'active': flagReason === 'broken'}"
+                            class="btn-toggle"><i data-lucide="search-x"></i></button>
+                        <button @click="flagReason = 'inappropriate'"
+                            :class="{'active': flagReason === 'inappropriate'}" class="btn-toggle"><i
+                                data-lucide="shield-alert"></i></button>
+                    </div>
+                    <div style="background: var(--bg-panel); padding: 1rem; border-radius: 0.75rem;">
+                        <input type="text" placeholder="Additional details..."
+                            style="width: 100%; background: transparent; font-size: 0.875rem;">
+                    </div>
+                    <button @click="flagOpen = false; alert('Report submitted')" class="btn btn-primary"><i
+                            data-lucide="send"></i> Submit</button>
+                </div>
+            </aside>
+
+            <aside class="panel-aside" x-show="settingsOpen" x-transition:enter="slide-transition"
+                x-transition:enter-start="slide-hidden" x-transition:enter-end="slide-visible"
+                x-transition:leave="slide-transition" x-transition:leave-start="slide-visible"
+                x-transition:leave-end="slide-hidden" x-cloak>
+                <header class="panel-header">
+                    <span style="display: flex; gap: 0.5rem; opacity: 0.6"><i data-lucide="settings"></i>
+                        Settings</span>
+                    <button @click="settingsOpen = false" class="btn-icon"><i data-lucide="x"></i></button>
+                </header>
+                <div class="panel-content custom-scroll">
+
+                    <div class="setting-row">
+                        <div class="icon-box"
+                            :style="showImage ? 'background: var(--primary); color: #fff' : 'background: var(--bg-panel)'">
+                            <i data-lucide="image"></i>
+                        </div>
+                        <div @click="showImage = !showImage" class="switch" :class="showImage ? 'is-active' : ''"></div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="icon-box"
+                            :style="audioEnabled ? 'background: var(--primary); color: #fff' : 'background: var(--bg-panel)'">
+                            <i data-lucide="volume-2"></i>
+                        </div>
+                        <div @click="audioEnabled = !audioEnabled" class="switch"
+                            :class="audioEnabled ? 'is-active' : ''">
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <button @click="questionType = 'multiple'" :class="{'active': questionType === 'multiple'}"
+                            class="btn-toggle"><i data-lucide="list"></i></button>
+                        <button @click="questionType = 'unscramble'" :class="{'active': questionType === 'unscramble'}"
+                            class="btn-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="3" y="10" width="10" height="10" rx="1.5" transform="rotate(-15 8 15)"
+                                    fill="var(--bg-panel)" />
+
+                                <rect x="7" y="5" width="10" height="10" rx="1.5" transform="rotate(5 12 10)"
+                                    fill="var(--bg-panel)" />
+
+                                <rect x="12" y="9" width="10" height="10" rx="1.5" transform="rotate(20 17 14)"
+                                    fill="var(--bg-panel)" />
+                            </svg></button>
+                        <button @click="questionType = 'text'" :class="{'active': questionType === 'text'}"
+                            class="btn-toggle"><i data-lucide="keyboard"></i></button>
+                    </div>
+
+                    <div
+                        style="background: var(--bg-panel); padding: 1rem; border-radius: 0.75rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="toggle-group" style="background: var(--bg-app)">
+                            <button @click="fontFamily = 'sans'" :class="{'active': fontFamily === 'sans'}"
+                                class="btn-toggle">Sans</button>
+                            <button @click="fontFamily = 'serif'" :class="{'active': fontFamily === 'serif'}"
+                                class="btn-toggle">Serif</button>
+                            <button @click="fontFamily = 'mono'" :class="{'active': fontFamily === 'mono'}"
+                                class="btn-toggle">Mono</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 0.75rem; font-weight: bold; opacity: 0.5;">A</span>
+                            <input type="range" min="14" max="28" x-model="fontSize"
+                                style="flex: 1; accent-color: var(--primary)">
+                            <span style="font-size: 1.125rem; font-weight: bold;">A</span>
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <button @click="theme = 'light'" :class="{'active': theme === 'light'}" class="btn-toggle"><i
+                                data-lucide="sun"></i></button>
+                        <button @click="theme = 'sepia'" :class="{'active': theme === 'sepia'}" class="btn-toggle"><i
+                                data-lucide="book-open"></i></button>
+                        <button @click="theme = 'dark'" :class="{'active': theme === 'dark'}" class="btn-toggle"><i
+                                data-lucide="moon"></i></button>
+                    </div>
+
+                </div>
+            </aside>
+
+            <div class="settings-backdrop" x-show="settingsOpen || flagOpen"
+                @click="settingsOpen = false; flagOpen = false" x-cloak></div>
+
+        </div>
+    </div>
+</body>
+
+</html>
