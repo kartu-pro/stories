@@ -90,10 +90,122 @@ function quizApp() {
                 question: "კარები გავაღე და მას ღიმილით ვუთხარი: „რა კარგია, რომ ასე ადრე მოხვედი!“.",
                 answer: "მოხვედი",
                 distractors: ["მოხვედით", "მოხვედი", "მოვიდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "ჩემი და აივანზეა და მეკითხება: „როდის ____ სტუმრები თბილისში?“",
+                answer: "წავლენ",
+                distractors: ["წავა", "მიდიან", "წავედით"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მე ვპასუხობ, რომ ავტობუსი მალე მოვა და ისინი ალბათ ხუთ წუთში ____.",
+                answer: "წავლენ",
+                distractors: ["წავიდა", "მიდის", "წავალთ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "შარშან, როცა მთაში ვმოგზაურობდით, ყველა დილის რვა საათზე ____.",
+                answer: "წავიდა",
+                distractors: ["წავიდნენ", "მიდიოდა", "წავლენ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მაშინ ყველა სტუდენტი სოფლიდან ერთად ____ და გზაში ბევრს ვმღეროდით.",
+                answer: "მიდიოდა",
+                distractors: ["მიდიოდნენ", "წავიდა", "წავლენ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "სანამ მზე ამოვიდოდა, ჩემი ძმაც ____ სადგურში.",
+                answer: "წავიდა",
+                distractors: ["მიდის", "წავიდნენ", "წავა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "„შეხედე, ნინო უკვე ____!“ — დაიყვირა ჩემმა დამ.",
+                answer: "მიდის",
+                distractors: ["წავიდა", "მიდიოდა", "წავა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მართლაც, ნინო ნელა ____ ჭიშკრისკენ და დიდ ჩანთებს მოათრევდა.",
+                answer: "მიდიოდა",
+                distractors: ["მიდის", "წავიდა", "წავიდნენ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "კარები გავაღე და მას დავუძახე: „გაჩერდი, შენ რატომ ასე ადრე ____?“",
+                answer: "წახვედი",
+                distractors: ["წავიდა", "მიდიხარ", "წახვალ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "ჩემი მეგობარი, ლუკა, პარიზში ____.",
+                answer: "მიდის",
+                distractors: ["მოდის", "მიდიოდა", "წავიდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მე ვეუბნები: „იმედია, მალე უკან ____!“",
+                answer: "მოხვალ",
+                distractors: ["წახვალ", "მოვა", "მოხვედი"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: " ",
+                question: "ლუკა მპასუხობს, რომ ის აუცილებლად ____ ზაფხულში.",
+                answer: "მოვა",
+                distractors: ["მიდის", "მოვალ", "მოვიდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "როცა ლუკა ____, მე ცოტათი მოვიწყინე.",
+                answer: "მიდიოდა",
+                distractors: ["მოდიოდა", "მიდის", "წავიდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "გამახსენდა, როგორ ____ აქ ერთად შარშან.",
+                answer: "მოვდიოდით",
+                distractors: ["მივდიოდით", "მოვედით", "მოვდიოდი"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მაშინ ბევრი ხალხი ____ და მიდიოდა, სადგური სავსე იყო.",
+                answer: "მოდიოდა",
+                distractors: ["მოდიან", "მოვიდა", "მიდიოდა"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "ჩემმა დამ მითხრა, რომ სტუმრები უკვე სახლში ____.",
+                answer: "მოვიდნენ",
+                distractors: ["მოვიდა", "მოდიან", "წავიდნენ"]
+            },
+            {
+                imageUrl: "",
+                audioUrl: "",
+                question: "მეც სწრაფად ____ სადგურიდან, რადგან არ მინდოდა დაგვიანება.",
+                answer: "წავედი",
+                distractors: ["მივდიოდი", "წავიდა", "მოვედი"]
             }
         ],
 
-        currentIndex: 0,
+        currentIndex: parseInt(localStorage.getItem('quiz_currentIndex')) || 0,
         get currentPage() {
             return this.pages[this.currentIndex];
         },
@@ -128,8 +240,9 @@ function quizApp() {
                 localStorage.setItem('quiz_theme', val);
                 lucide.createIcons();
             });
-            this.$watch('currentIndex', (newVal) => {
+            this.$watch('currentIndex', (val) => {
                 this.pauseAudio();
+                localStorage.setItem('quiz_currentIndex', val);
                 this.setupQuestion();
             });
             this.$watch('questionType', (newVal) => {
