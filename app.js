@@ -447,7 +447,40 @@ function quizApp() {
 
         },
 
+        handleKeyDown(e) {
+            // Only run if we are in unscramble mode and not already answered
+            if (this.questionType !== 'unscramble' || this.answered) return;
+            
+            // Ignore if user is typing in the "Flag" report details or other inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+            const key = e.key;
+
+            if (key === 'Backspace') {
+                // Remove the last item from dropzone
+                if (this.unscrambleDropzone.length > 0) {
+                    const lastTile = this.unscrambleDropzone.pop();
+                    const poolTile = this.unscramblePool.find(p => p.id === lastTile.id);
+                    if (poolTile) poolTile.used = false;
+                }
+            } else if (key.length === 1) {
+                // Find the first unused tile in the pool that matches the key
+                // Note: Using .toLowerCase() to make it case-insensitive if desired
+                const poolTile = this.unscramblePool.find(t => 
+                    !t.used && t.char.toLowerCase() === key.toLowerCase()
+                );
+
+                if (poolTile) {
+                    poolTile.used = true;
+                    this.unscrambleDropzone.push({ ...poolTile });
+
+                    // Trigger submit if full
+                    if (this.unscrambleDropzone.length === this.unscramblePool.length) {
+                        this.submitUnscramble();
+                    }
+                }
+            }
+        },
     }
 }
 

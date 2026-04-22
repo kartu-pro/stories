@@ -14,7 +14,7 @@
 
 </head>
 
-<body :class="'theme-' + theme" x-data="quizApp()">
+<body :class="'theme-' + theme" x-data="quizApp()" @keydown.window="handleKeyDown($event)">
 
     <div class="app-container">
 
