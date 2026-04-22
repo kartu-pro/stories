@@ -450,3 +450,16 @@ function quizApp() {
 
     }
 }
+
+if (window.visualViewport) {
+    const resizeHandler = () => {
+        const container = document.querySelector('.app-container');
+        if (container) {
+            container.style.height = `${window.visualViewport.height}px`;
+        }
+    };
+
+    window.visualViewport.addEventListener('resize', resizeHandler);
+    // Run it immediately to set the initial correct height
+    resizeHandler();
+}

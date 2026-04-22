@@ -472,3 +472,12 @@ main {
 .slide-visible {
     transform: translateX(0);
 }
+
+@media (max-width: 640px) {
+    /* Hide header and image on mobile when user typing */
+    /* Only hide if the actual text input is focused */
+    .app-container:has(.text-input:focus) .app-header,
+    .app-container:has(.text-input:focus) .question-image {
+        display: none;
+    }
+}
