@@ -19,7 +19,16 @@ function quizApp() {
         questionLang: "ka",
         nativeLang: "en",
         get translateUrl() {
-            return `https://translate.google.com/?sl=${this.questionLang}&tl=${this.nativeLang}&text=${this.currentPage.question}&op=translate`
+            // old; works fine on desktop but just opens app in mobile without passing params
+            // could also try https://translate.google.com/m?sl=... for mobile webpage
+            // return `https://translate.google.com/?sl=${this.questionLang}&tl=${this.nativeLang}&text=${this.currentPage.question}&op=translate`
+
+            // Encode the text to handle spaces and special characters safely
+            const encodedText = encodeURIComponent(this.currentPage.question);
+            
+            // ALTERNATIVE: If the above still fails on specific devices, 
+            // try the direct path approach which the app prefers:
+            return `https://translate.google.com/${this.questionLang}/${this.nativeLang}/${encodedText}`;
         },
         pages: [],
         loading: true,
