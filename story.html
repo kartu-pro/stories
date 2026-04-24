@@ -81,8 +81,9 @@
                         <template x-if="questionType === 'multiple'">
                             <div class="mc-options">
                                 <template x-for="(option, index) in mcOptions" :key="index">
-                                    <button class="btn-outline" x-show="!option.hidden"
-                                        @click="submitAnswer(option.text)" x-transition>
+                                    <button class="btn-outline"
+                                        :class="option.disabled ? 'opacity-50 cursor-not-allowed' : ''"
+                                        :disabled="option.disabled" @click="submitAnswer(option.text)" x-transition>
                                         <span x-text="option.text"></span>
                                     </button>
                                 </template>

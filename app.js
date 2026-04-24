@@ -158,7 +158,7 @@ function quizApp() {
             let allOptions = [answer, ...randomDistractors];
             this.mcOptions = this.shuffleArray(allOptions).map(opt => ({
                 text: opt, 
-                hidden: false
+                disabled: false
             }));
 
             // Setup Unscramble
@@ -182,10 +182,13 @@ function quizApp() {
 
         triggerHint() {
             if (this.questionType === 'multiple') {
-                // Hide one incorrect distractor
-                let incorrectAvailable = this.mcOptions.filter(o => o.text !== this.currentPage.answer && !o.hidden);
+                // target the first available incorrect option and disable it
+                let incorrectAvailable = this.mcOptions.filter(o => 
+                    o.text !== this.currentPage.answer && !o.disabled
+                );
+
                 if (incorrectAvailable.length > 0) {
-                    incorrectAvailable[0].hidden = true;
+                    incorrectAvailable[0].disabled = true;
                 }
             }
             else if (this.questionType === 'unscramble') {
