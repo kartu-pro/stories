@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Library</title>
+    <title>Library | Storyline</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%231e293b'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-size='60' font-weight='bold' fill='white'>SL</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
@@ -49,54 +51,121 @@
                         <i data-lucide="x-circle" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <button @click="showAdvanced = !showAdvanced" class="p-2 rounded-xl transition-colors"
-                    :class="showAdvanced ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <button @click="showAdvanced = !showAdvanced" class="p-2 rounded-xl transition-colors relative"
+                    :class="showAdvanced ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
                     <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+                    <div x-show="isFiltered" x-cloak
+                        class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></div>
                 </button>
             </div>
 
             <div x-show="showAdvanced" x-collapse x-cloak>
-                <div class="pt-4 pb-2 px-2 border-t border-slate-100 mt-2 space-y-4">
+                <div class="pt-4 pb-2 px-2 border-t border-slate-100 mt-2">
+                    <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-6 items-center">
 
-                    <div class="flex items-center justify-between">
-                        <i data-lucide="arrow-down-wide-narrow" class="w-4 h-4 text-slate-400"></i>
-                        <select x-model="sortBy"
-                            class="bg-slate-50 border border-slate-200 text-sm rounded-lg px-2 py-1 outline-none focus:ring-2 ring-blue-500/20">
-                            <option value="recent">...</option>
-                            <option value="likes"><i data-lucide="heart"></i></option>
-                            <option value="views"><i data-lucide="eye"></i></option>
-                        </select>
-                    </div>
+                        <div class="flex justify-center">
+                            <i data-lucide="arrow-down-wide-narrow" class="w-5 h-5 text-slate-400"></i>
+                        </div>
+                        <div class="flex bg-slate-100 p-1 rounded-xl">
+                            <button @click="sortBy = 'recent'"
+                                :class="sortBy === 'recent' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="file-plus" class="w-4 h-4"></i>
+                            </button>
 
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="file-text" class="w-4 h-4 text-slate-400"></i>
-                        <input type="range" min="0" max="100" x-model="minPages" class="flex-1 flex-shrink-0">
-                        <span class="text-xs font-mono w-6 text-right" x-text="minPages > 0 ? minPages : '0'"></span>
-                    </div>
+                            <button @click="sortBy = 'views'"
+                                :class="sortBy === 'views' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
 
-                    <div class="flex items-center justify-between">
-                        <i data-lucide="crown" class="w-4 h-4 text-amber-500"></i>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" x-model="premiumOnly" class="sr-only peer">
-                            <div
-                                class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500">
+                            <button @click="sortBy = 'likes'"
+                                :class="sortBy === 'likes' ? 'bg-white shadow-sm text-amber-500' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                            </button>
+
+                            <button @click="sortBy = 'favorites'"
+                                :class="sortBy === 'favorites' ? 'bg-white shadow-sm text-red-500' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="heart" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex justify-center">
+                            <i data-lucide="funnel" class="w-5 h-5 text-slate-400"></i>
+                        </div>
+                        <div class="flex bg-slate-100 p-1 rounded-xl">
+                            <button @click="premiumOnly = !premiumOnly"
+                                :class="premiumOnly ? 'bg-white shadow-sm text-amber-500' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="crown" class="w-4 h-4"></i>
+                            </button>
+
+                            <button @click="audioOnly = !audioOnly"
+                                :class="audioOnly ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="headphones" class="w-4 h-4"></i>
+                            </button>
+
+                            <button @click="imagesOnly = !imagesOnly"
+                                :class="imagesOnly ? 'bg-white shadow-sm text-emerald-400' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                            </button>
+
+                            <button @click="unreadOnly = !unreadOnly"
+                                :class="unreadOnly ? 'bg-white shadow-sm text-purple-600' : 'text-slate-500'"
+                                class="flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all">
+                                <i data-lucide="book-open" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex justify-center">
+                            <i data-lucide="file-text" class="w-5 h-5 text-slate-400"></i>
+                        </div>
+                        <div class="px-2 pb-2">
+
+                            <div class="relative h-1.5 flex items-center bg-slate-100 rounded-full">
+                                <div class="absolute h-full bg-blue-600/20 rounded-full"
+                                    :style="`left: ${(minPages/absoluteMaxPages)*100}%; right: ${100 - (maxPages/absoluteMaxPages)*100}%` ">
+                                </div>
+
+                                <input type="range" min="0" :max="absoluteMaxPages" x-model="minPages"
+                                    class="absolute w-full appearance-none bg-transparent pointer-events-none z-30 touch-none 
+            [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-transparent">
+
+                                <input type="range" min="0" :max="absoluteMaxPages" x-model="maxPages"
+                                    class="absolute w-full appearance-none bg-transparent pointer-events-none z-30 touch-none 
+            [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-8 [&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-transparent">
+
+                                <div class="absolute pointer-events-none z-20 -translate-x-1/2 w-5 h-5 rounded-full border-2 border-blue-600 bg-white flex items-center justify-center shadow-sm"
+                                    :style="`left: ${(minPages/absoluteMaxPages)*100}%` ">
+                                    <span class="text-[10px] font-bold text-blue-600" x-text="minPages"></span>
+                                </div>
+
+                                <div class="absolute pointer-events-none z-20 -translate-x-1/2 w-5 h-5 rounded-full border-2 border-blue-600 bg-white flex items-center justify-center shadow-sm"
+                                    :style="`left: ${(maxPages/absoluteMaxPages)*100}%` ">
+                                    <span class="text-[10px] font-bold text-blue-600" x-text="maxPages"></span>
+                                </div>
                             </div>
-                        </label>
+                        </div>
+
                     </div>
 
+                    <div class="mt-8 flex gap-3">
+                        <button @click="resetFilters()"
+                            class="flex-1 p-3 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-red-500 transition-colors flex justify-center items-center">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+
+                        <button @click="showAdvanced = false"
+                            class="flex-[2] p-3 bg-slate-900 text-white rounded-xl shadow-xl shadow-slate-200 flex justify-center items-center hover:bg-slate-800 transition-all active:scale-95">
+                            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div x-show="focusFilter" style="display: none;"
-            class="mb-4 flex items-center justify-between bg-blue-50 text-blue-600 px-3 py-2 rounded-lg text-sm border border-blue-100">
-            <div class="flex items-center gap-2">
-                <i data-lucide="tag" class="w-4 h-4"></i>
-                <span x-text="focusFilter" class="font-medium"></span>
-            </div>
-            <button @click="setFocus('')" class="hover:text-blue-800">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
         </div>
 
         <div class="space-y-4">
@@ -198,85 +267,14 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('libraryApp', () => ({
+
+                // Story Data State
                 cachedStories: Alpine.$persist([]).as('library_stories'),
                 lastFetch: Alpine.$persist(0).as('library_fetch_timestamp'),
                 liveStories: [],
                 pendingStories: [],
                 showUpdateTooltip: false,
                 softUpdating: false,
-
-                // Filter State
-                searchQuery: '',
-                focusFilter: '',
-                premiumOnly: false,
-                minPages: 0,
-                sortBy: 'recent',
-
-                showAdvanced: false,
-
-                init() {
-                    // Load Cache immediately
-                    this.liveStories = [...this.cachedStories];
-                    this.$nextTick(() => lucide.createIcons());
-
-                    // Parse initial URL Params
-                    const params = new URLSearchParams(window.location.search);
-                    this.searchQuery = params.get('q') || '';
-                    this.focusFilter = params.get('f') || '';
-                    this.premiumOnly = params.get('premium') === 'true';
-                    this.minPages = Number(params.get('minPages')) || 0;
-                    this.sortBy = params.get('sort') || 'recent';
-
-                    Alpine.effect(() => {
-                        // Register dependencies by "touching" them
-                        this.filteredStories;
-                        this.showAdvanced;
-                        this.focusFilter;
-
-                        // Wait for DOM to update, then swap icons
-                        this.$nextTick(() => {
-                            lucide.createIcons();
-                        });
-                    });
-
-                    // Watchers to seamlessly update URL without page refresh
-                    this.$watch('searchQuery', val => this.updateUrl('q', val));
-                    this.$watch('focusFilter', val => this.updateUrl('f', val));
-                    this.$watch('premiumOnly', val => this.updateUrl('premium', val ? 'true' : ''));
-                    this.$watch('minPages', val => this.updateUrl('minPages', val > 0 ? val : ''));
-                    this.$watch('sortBy', val => this.updateUrl('sort', val !== 'recent' ? val : ''));
-
-                    // Handle back/forward browser navigation
-                    window.addEventListener('popstate', () => {
-                        const p = new URLSearchParams(window.location.search);
-                        this.searchQuery = p.get('q') || '';
-                        this.focusFilter = p.get('f') || '';
-                        this.premiumOnly = p.get('premium') === 'true';
-                        this.minPages = Number(p.get('minPages')) || 0;
-                        this.sortBy = p.get('sort') || 'recent';
-                    });
-
-                    // Fetch fresh data in background on idle
-                    window.addEventListener('load', () => {
-                        // requestIdleCallback waits for the browser to be "bored"
-                        if ('requestIdleCallback' in window) {
-                            requestIdleCallback(() => this.fetchData());
-                        } else {
-                            // Fallback for older browsers
-                            setTimeout(() => this.fetchData(), 3000);
-                        }
-                    });
-                },
-
-                updateUrl(key, value) {
-                    const url = new URL(window.location);
-                    if (value) {
-                        url.searchParams.set(key, value);
-                    } else {
-                        url.searchParams.delete(key);
-                    }
-                    window.history.replaceState({}, '', url);
-                },
 
                 async fetchData() {
                     const fetchTTL = 30 // seconds
@@ -333,9 +331,40 @@
                     window.scrollTo({top: 0, behavior: 'smooth'});
                 },
 
-                setFocus(f) {
-                    this.focusFilter = f;
-                    window.scrollTo({top: 0, behavior: 'smooth'});
+
+
+                // Filter State
+                searchQuery: '',
+                premiumOnly: false,
+                audioOnly: false,
+                imagesOnly: false,
+                unreadOnly: false,
+                minPages: 0,
+                maxPages: 100,
+                sortBy: 'likes',
+                showAdvanced: false,
+
+                resetFilters() {
+                    this.searchQuery = '';
+                    this.premiumOnly = false;
+                    this.audioOnly = false;
+                    this.imagesOnly = false;
+                    this.unreadOnly = false;
+                    this.minPages = 0;
+                    this.maxPages = 100;
+                    this.sortBy = 'recent';
+                },
+                get isFiltered() {
+                    return this.searchQuery || this.premiumOnly || this.audioOnly ||
+                        this.imagesOnly || this.unreadOnly || this.minPages > 0 || this.maxPages < 100;
+                },
+                get allFocuses() {
+                    const focuses = this.liveStories.flatMap(s => s.focuses || []);
+                    return [...new Set(focuses)].sort();
+                },
+                get absoluteMaxPages() {
+                    if (this.liveStories.length === 0) return 100; // Fallback
+                    return Math.max(...this.liveStories.map(s => s.pages || 0));
                 },
 
                 get filteredStories() {
@@ -349,25 +378,105 @@
                             if (!matchesTitle && !matchesAuthor && !matchesFocus) return false;
                         }
 
-                        // Explicit Focus filter
-                        if (this.focusFilter && !story.focuses?.includes(this.focusFilter)) return false;
-
-                        // Advanced Filters
-                        if (this.premiumOnly && (!story.cost || story.cost === 0)) return false;
-                        if (this.minPages > 0 && (story.pages || 0) < this.minPages) return false;
+                        if (this.premiumOnly && story.cost <= 0) return false;
+                        if (this.audioOnly && !story.hasAudio) return false;
+                        if (this.imagesOnly && !story.hasImages) return false;
+                        if (this.unreadOnly && story.read) return false;
+                        if (story.pages < this.minPages || story.pages > this.maxPages) return false;
 
                         return true;
                     });
 
-                    // Sorting
-                    if (this.sortBy === 'likes') {
-                        result = result.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-                    } else if (this.sortBy === 'views') {
-                        result = result.sort((a, b) => (b.views || 0) - (a.views || 0));
-                    }
+                    // Advanced Sorting
+                    return result.sort((a, b) => {
+                        if (this.sortBy === 'views') return b.views - a.views;
+                        if (this.sortBy === 'likes') return b.likes - a.likes;
+                        if (this.sortBy === 'favorites') return b.favorites - a.favorites;
+                        return 0; // 'recent' assumes array is already sorted or uses ID
+                    });
 
                     return result;
-                }
+                },
+                updateUrl(key, value) {
+                    const url = new URL(window.location);
+                    if (value) {
+                        url.searchParams.set(key, value);
+                    } else {
+                        url.searchParams.delete(key);
+                    }
+                    window.history.replaceState({}, '', url);
+                },
+                setFocus(f) {
+                    this.searchQuery = f;
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                },
+
+
+
+
+                init() {
+                    // Load Cache immediately
+                    this.liveStories = [...this.cachedStories];
+                    this.$nextTick(() => lucide.createIcons());
+
+                    // Parse initial URL Params
+                    const params = new URLSearchParams(window.location.search);
+                    this.searchQuery = params.get('q') || '';
+                    this.sortBy = params.get('sort') || 'recent';
+                    this.premiumOnly = params.get('premiumOnly') === 'true';
+                    this.audioOnly = params.get('audioOnly') === 'true';
+                    this.imagesOnly = params.get('imagesOnly') === 'true';
+                    this.unreadOnly = params.get('unreadOnly') === 'true';
+
+                    this.minPages = Number(params.get('minPages')) || 0;
+                    this.maxPages = Number(params.get('maxPages')) || this.absoluteMaxPages;
+
+                    Alpine.effect(() => {
+                        // Register dependencies by "touching" them
+                        this.filteredStories;
+                        this.showAdvanced;
+                        this.focusFilter;
+
+                        // Wait for DOM to update, then swap icons
+                        this.$nextTick(() => {
+                            lucide.createIcons();
+                        });
+                    });
+
+                    // Watchers to seamlessly update URL without page refresh
+                    this.$watch('searchQuery', val => this.updateUrl('q', val));
+                    this.$watch('sortBy', val => this.updateUrl('sort', val !== 'recent' ? val : ''));
+                    this.$watch('premiumOnly', val => this.updateUrl('premiumOnly', val ? 'true' : ''));
+                    this.$watch('audioOnly', val => this.updateUrl('audioOnly', val ? 'true' : ''));
+                    this.$watch('imagesOnly', val => this.updateUrl('imagesOnly', val ? 'true' : ''));
+                    this.$watch('unreadOnly', val => this.updateUrl('unreadOnly', val ? 'true' : ''));
+                    this.$watch('minPages', val => this.updateUrl('minPages', val > 0 ? val : ''));
+                    this.$watch('maxPages', val => this.updateUrl('maxPages', val < this.absoluteMaxPages ? val : ''));
+
+                    // Handle back/forward browser navigation
+                    window.addEventListener('popstate', () => {
+                        const p = new URLSearchParams(window.location.search);
+                        this.searchQuery = p.get('q') || '';
+                        this.sortBy = p.get('sort') || 'recent';
+                        this.premiumOnly = p.get('premiumOnly') === 'true';
+                        this.audioOnly = p.get('audioOnly') === 'true';
+                        this.imagesOnly = p.get('imagesOnly') === 'true';
+                        this.unreadOnly = p.get('unreadOnly') === 'true';
+                        this.minPages = Number(p.get('minPages')) || 0;
+                        this.maxPages = Number(p.get('maxPages')) || this.absoluteMaxPages;
+                    });
+
+                    // Fetch fresh data in background on idle
+                    window.addEventListener('load', () => {
+                        // requestIdleCallback waits for the browser to be "bored"
+                        if ('requestIdleCallback' in window) {
+                            requestIdleCallback(() => this.fetchData());
+                        } else {
+                            // Fallback for older browsers
+                            setTimeout(() => this.fetchData(), 3000);
+                        }
+                    });
+                },
             }));
         });
     </script>
