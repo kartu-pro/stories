@@ -30,7 +30,26 @@ function quizApp() {
         //currentIndex: parseInt(localStorage.getItem('quiz_currentIndex')) || 0,
         currentIndex: 0,
         get currentPage() {
-            return this.pages[this.currentIndex];
+            if (!this.pages || this.pages.length === 0) {
+                return this.getEmptyPagePlaceholder();
+            }
+            const index = this.currentIndex;
+            const isIndexValid = index >= 0 && index < this.pages.length;
+            if (!isIndexValid) {
+                return this.getEmptyPagePlaceholder();
+            }
+            return this.pages[index];
+        },
+
+        // Helper function so you don't repeat the "Empty" object everywhere
+        getEmptyPagePlaceholder() {
+            return {
+                question: "",
+                answer: "",
+                distractors: [],
+                imageUrl: "",
+                audioUrl: "",
+            };
         },
         get lastIndex() {
             return this.pages.length - 1;
