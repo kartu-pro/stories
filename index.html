@@ -127,8 +127,8 @@
                         <div class="px-2 pb-2">
 
                             <div class="relative h-1.5 flex items-center bg-slate-100 rounded-full">
-                                <div class="absolute h-full bg-blue-600/20 rounded-full"
-                                    :style="`left: ${(minPages/absoluteMaxPages)*100}%; right: ${100 - (maxPages/absoluteMaxPages)*100}%` ">
+                                <div class="absolute h-full bg-blue-600/20 rounded-full" :style="`left: ${(minPages/absoluteMaxPages)*100}%; 
+                     right: ${100 - ((maxPages || absoluteMaxPages)/absoluteMaxPages)*100}%` ">
                                 </div>
 
                                 <input type="range" min="0" :max="absoluteMaxPages" x-model="minPages"
@@ -334,13 +334,17 @@
 
 
                 // Filter State
+                get absoluteMaxPages() {
+                    if (this.liveStories.length === 0) return 1; // Fallback
+                    return Math.max(...this.liveStories.map(s => s.pages || 0));
+                },
                 searchQuery: '',
                 premiumOnly: false,
                 audioOnly: false,
                 imagesOnly: false,
                 unreadOnly: false,
                 minPages: 0,
-                maxPages: 100,
+                maxPages: this.absoluteMaxPages,
                 sortBy: 'likes',
                 showAdvanced: false,
 
@@ -351,20 +355,16 @@
                     this.imagesOnly = false;
                     this.unreadOnly = false;
                     this.minPages = 0;
-                    this.maxPages = 100;
+                    this.maxPages = this.absoluteMaxPages;
                     this.sortBy = 'recent';
                 },
                 get isFiltered() {
                     return this.searchQuery || this.premiumOnly || this.audioOnly ||
-                        this.imagesOnly || this.unreadOnly || this.minPages > 0 || this.maxPages < 100;
+                        this.imagesOnly || this.unreadOnly || this.minPages != 0 || this.maxPages != this.absoluteMaxPages;
                 },
                 get allFocuses() {
                     const focuses = this.liveStories.flatMap(s => s.focuses || []);
                     return [...new Set(focuses)].sort();
-                },
-                get absoluteMaxPages() {
-                    if (this.liveStories.length === 0) return 100; // Fallback
-                    return Math.max(...this.liveStories.map(s => s.pages || 0));
                 },
 
                 get filteredStories() {
