@@ -194,11 +194,11 @@
 
                     <div class="setting-row">
                         <div class="icon-box"
-                            :style="audioEnabled ? 'background: var(--primary); color: #fff' : 'background: var(--bg-panel)'">
+                            :style="autoPlayEnabled ? 'background: var(--primary); color: #fff' : 'background: var(--bg-panel)'">
                             <i data-lucide="volume-2"></i>
                         </div>
-                        <div @click="audioEnabled = !audioEnabled" class="switch"
-                            :class="audioEnabled ? 'is-active' : ''">
+                        <div @click="autoPlayEnabled =! autoPlayEnabled" class="switch"
+                            :class="autoPlayEnabled ? 'is-active' : ''">
                         </div>
                     </div>
 

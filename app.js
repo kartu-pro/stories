@@ -6,7 +6,7 @@ function quizApp() {
 
         settingsOpen: false,
         showImage: localStorage.getItem('quiz_showImage') !== 'false', 
-        audioEnabled: localStorage.getItem('quiz_audioEnabled') !== 'false',
+        autoPlayEnabled: localStorage.getItem('quiz_autoPlayEnabled') !== 'false',
         questionType: localStorage.getItem('quiz_questionType') || 'multiple',
 
         audioPlaying: false,
@@ -79,7 +79,7 @@ function quizApp() {
             }
 
             this.$watch('showImage', val => localStorage.setItem('quiz_showImage', val));
-            this.$watch('audioEnabled', val => localStorage.setItem('quiz_audioEnabled', val));
+            this.$watch('autoPlayEnabled', val => localStorage.setItem('quiz_autoPlayEnabled', val));
             this.$watch('fontFamily', val => localStorage.setItem('quiz_fontFamily', val));
             this.$watch('fontSize', val => localStorage.setItem('quiz_fontSize', val));
 
@@ -168,6 +168,11 @@ function quizApp() {
 
             // Setup Text
             this.userTextAnswer = '';
+
+            // Auto play audio if enabled and have audio
+            if (this.autoPlayEnabled && this.currentPage.audioUrl) {
+                this.triggerAudio();
+            }
         },
 
         submitAnswer(submittedText) {
