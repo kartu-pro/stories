@@ -182,13 +182,16 @@ function quizApp() {
 
         triggerHint() {
             if (this.questionType === 'multiple') {
-                // target the first available incorrect option and disable it
+                // Filter for all incorrect options that aren't already disabled
                 let incorrectAvailable = this.mcOptions.filter(o => 
                     o.text !== this.currentPage.answer && !o.disabled
                 );
 
                 if (incorrectAvailable.length > 0) {
-                    incorrectAvailable[0].disabled = true;
+                    // Pick a random index from the filtered list
+                    const randomIndex = Math.floor(Math.random() * incorrectAvailable.length);
+                    // Disable that specific random choice
+                    incorrectAvailable[randomIndex].disabled = true;
                 }
             }
             else if (this.questionType === 'unscramble') {
