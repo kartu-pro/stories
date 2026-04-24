@@ -288,7 +288,7 @@ main {
 }
 
 .status-match {
-    color: var(--text-success);
+    color: #4ade80;
 }
 
 .status-deletion {
@@ -298,11 +298,8 @@ main {
 }
 
 .status-insertion {
-    color: var(--primary);
+    color: #3b82f6;
     font-weight: bold;
-    background: rgba(37, 99, 235, 0.1);
-    padding: 0 0.25rem;
-    border-radius: 0.25rem;
 }
 
 /* --- Modals / Asides --- */
