@@ -61,14 +61,14 @@
                     </h1>
 
                     <div class="question-actions">
-                        <a target="_blank" :href="translateUrl"><button class="btn-icon"><i
-                                    data-lucide="languages"></i></button></a>
-                        <div x-show="audioEnabled" style="display:flex;">
+                        <div x-show="currentPage.audioUrl" style="display:flex;">
                             <button x-show="!audioPlaying" @click="triggerAudio()" class="btn-icon" x-cloak><i
                                     data-lucide="volume-2"></i></button>
                             <button x-show="audioPlaying" @click="pauseAudio()" class="btn-icon" x-cloak><i
                                     data-lucide="pause"></i></button>
                         </div>
+                        <a target="_blank" :href="translateUrl"><button class="btn-icon"><i
+                                    data-lucide="languages"></i></button></a>
                         <button @click="flagOpen = true" class="btn-icon"><i data-lucide="flag"></i></button>
                         <button @click="triggerHint()" class="btn-icon" title="Hint" :disabled="answered"><i
                                 data-lucide="circle-help"></i></button>
