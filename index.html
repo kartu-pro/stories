@@ -4,48 +4,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storyline</title>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>Story Library</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@1.11.0/dist/umd/lucide.min.js"></script>
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://script.googleusercontent.com">
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Custom range slider styling */
+        input[type=range] {
+            accent-color: #3b82f6;
+        }
+
+        /* Hide scrollbar for badge list */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-50 p-8">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen pb-20">
 
-    <div x-data="{ 
-            stories: [], 
-            loading: true,
-            apiUrl: 'https://script.google.com/macros/s/AKfycbxr2lLYd4-M8mmc7IAmkwoSvYdIT13O3J_JJlB420-5C3v8nyPmy8aAqA5KlACcl6o9/exec?action=getStories'
-        }" x-init="
-            fetch(apiUrl)
-                .then(res => res.json())
-                .then(data => { 
-                    stories = data; 
-                    loading = false; 
-                })
-        " class="max-w-2xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">My Stories</h1>
+    <div x-data="libraryApp" class="max-w-2xl mx-auto p-4 relative">
 
-        <template x-if="loading">
-            <p class="text-gray-500 animate-pulse">Fetching stories...</p>
-        </template>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-2 mb-4 sticky top-4 z-20">
+            <div class="flex items-center gap-2">
+                <div class="flex-1 flex items-center bg-slate-100 rounded-xl px-3 py-2">
+                    <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+                    <input type="text" x-model="searchQuery"
+                        class="bg-transparent border-none outline-none w-full ml-2 text-sm" placeholder="...">
+                    <button x-show="searchQuery" @click="searchQuery = ''" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <button @click="showAdvanced = !showAdvanced" class="p-2 rounded-xl transition-colors"
+                    :class="showAdvanced ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                    <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-        <div class="grid gap-4">
-            <template x-for="story in stories" :key="story.uuid">
-                <a :href="'story.html?id=' + story.uuid" class="block p-6 bg-white rounded-lg border border-gray-200 shadow-sm hover:border-blue-400
-                    hover:shadow-md transition-all group">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-xl font-semibold text-gray-700 group-hover:text-blue-600" x-text="story.title">
-                        </h2>
+            <div x-show="showAdvanced" x-collapse x-cloak>
+                <div class="pt-4 pb-2 px-2 border-t border-slate-100 mt-2 space-y-4">
 
-                        <span class="px-2 py-1 text-xs font-bold uppercase rounded"
-                            :class="story.read ? 'bg-gray-100 text-gray-400' : 'bg-green-100 text-green-700'"
-                            x-text="story.read ? 'Read' : 'New'"></span>
+                    <div class="flex items-center justify-between">
+                        <i data-lucide="arrow-down-wide-narrow" class="w-4 h-4 text-slate-400"></i>
+                        <select x-model="sortBy"
+                            class="bg-slate-50 border border-slate-200 text-sm rounded-lg px-2 py-1 outline-none focus:ring-2 ring-blue-500/20">
+                            <option value="recent">...</option>
+                            <option value="likes"><i data-lucide="heart"></i></option>
+                            <option value="views"><i data-lucide="eye"></i></option>
+                        </select>
                     </div>
-                </a>
-            </template>
+
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="file-text" class="w-4 h-4 text-slate-400"></i>
+                        <input type="range" min="0" max="100" x-model="minPages" class="flex-1 flex-shrink-0">
+                        <span class="text-xs font-mono w-6 text-right" x-text="minPages > 0 ? minPages : '0'"></span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <i data-lucide="crown" class="w-4 h-4 text-amber-500"></i>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" x-model="premiumOnly" class="sr-only peer">
+                            <div
+                                class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500">
+                            </div>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
         </div>
+
+        <div x-show="focusFilter" style="display: none;"
+            class="mb-4 flex items-center justify-between bg-blue-50 text-blue-600 px-3 py-2 rounded-lg text-sm border border-blue-100">
+            <div class="flex items-center gap-2">
+                <i data-lucide="tag" class="w-4 h-4"></i>
+                <span x-text="focusFilter" class="font-medium"></span>
+            </div>
+            <button @click="setFocus('')" class="hover:text-blue-800">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <template x-for="story in filteredStories" :key="story.uuid">
+
+                <div @click="window.location.href = 'story.html?id=' + story.uuid"
+                    class="flex flex-row overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition-shadow h-40 relative group">
+                    <div class="w-1/3 relative bg-slate-200 flex-shrink-0">
+                        <div x-show="story.cost > 0"
+                            class="absolute top-0 right-0 bg-amber-400 text-white p-1.5 rounded-bl-xl z-10 shadow-sm">
+                            <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <!--
+                        <div x-show="story.cost == 0"
+                            class="absolute top-0 right-0 bg-emerald-500 text-white px-2 py-1 text-[10px] font-bold uppercase rounded-bl-xl z-10 shadow-sm">
+                            Free
+                        </div>
+                        -->
+                        <img :src="story.imageUrl || 'https://placehold.co/400x600/e2e8f0/64748b?text=+'" alt=""
+                            class="w-full h-full object-cover">
+                    </div>
+
+                    <div class="w-2/3 p-3 flex flex-col justify-between">
+
+                        <div>
+                            <h3 x-text="story.title" class="font-bold text-slate-800 leading-tight line-clamp-1 mb-1">
+                            </h3>
+                            <a @click.stop :href="'/authors/' + story.author"
+                                class="text-xs text-blue-500 hover:text-blue-700 hover:underline inline-flex items-center gap-0.5">
+                                @<span x-text="story.author"></span>
+                            </a>
+
+                            <div class="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar pb-1">
+                                <template x-for="focus in story.focuses" :key="focus">
+                                    <button @click.stop="setFocus(focus)" x-text="focus"
+                                        class="text-[10px] uppercase tracking-wider font-semibold bg-slate-100 text-slate-600 rounded-md px-2 py-1 whitespace-nowrap hover:bg-slate-200 transition-colors"></button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex items-center justify-between mt-2 pt-2 border-t border-slate-50 text-slate-400">
+                            <div class="flex gap-3">
+                                <div class="flex items-center gap-1 text-xs">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                    <span x-text="story.views" class="transition-opacity duration-500"
+                                        :class="softUpdating ? 'opacity-0' : 'opacity-100'"></span>
+                                </div>
+                                <div class="flex items-center gap-1 text-xs">
+                                    <i data-lucide="thumbs-up" class="w-3.5 h-3.5"
+                                        :class="story.likes > 0 ? 'text-amber-400' : ''"></i>
+                                    <span x-text="story.likes" class="transition-opacity duration-500"
+                                        :class="softUpdating ? 'opacity-0' : 'opacity-100'"></span>
+                                </div>
+                                <div class="flex items-center gap-1 text-xs">
+                                    <i data-lucide="heart" class="w-3.5 h-3.5"
+                                        :class="story.favorites > 0 ? 'text-red-400' : ''"></i>
+                                    <span x-text="story.favorites" class="transition-opacity duration-500"
+                                        :class="softUpdating ? 'opacity-0' : 'opacity-100'"></span>
+                                </div>
+                                <!--
+                                <div class="flex items-center gap-1 text-xs">
+                                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                                    <span x-text="story.pages" class="transition-opacity duration-500"
+                                        :class="softUpdating ? 'opacity-0' : 'opacity-100'"></span>
+                                </div>
+                                -->
+                            </div>
+
+                            <div class="flex gap-1.5">
+                                <i data-lucide="headphones" class="w-3.5 h-3.5 transition-colors"
+                                    :class="story.hasAudio ? 'text-blue-400' : 'text-slate-300 opacity-80'">
+                                </i>
+
+                                <i data-lucide="image" class="w-3.5 h-3.5 transition-colors"
+                                    :class="story.hasImages ? 'text-emerald-400' : 'text-slate-300 opacity-80'">
+                                </i>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </template>
+
+            <div x-show="filteredStories.length === 0" style="display: none;"
+                class="py-10 text-center text-slate-400 flex flex-col items-center">
+                <i data-lucide="ghost" class="w-10 h-10 mb-2 opacity-50"></i>
+            </div>
+        </div>
+
+        <button x-show="showUpdateTooltip" x-transition.opacity.duration.300ms @click="applyUpdates()"
+            style="display: none;"
+            class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white shadow-xl shadow-blue-600/20 rounded-full px-4 py-3 flex items-center gap-2 hover:bg-blue-700 transition-colors z-50">
+            <i data-lucide="refresh-cw" class="w-4 h-4 animate-spin-slow"></i>
+        </button>
+
     </div>
 
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('libraryApp', () => ({
+                cachedStories: Alpine.$persist([]).as('library_stories'),
+                lastFetch: Alpine.$persist(0).as('library_fetch_timestamp'),
+                liveStories: [],
+                pendingStories: [],
+                showUpdateTooltip: false,
+                softUpdating: false,
+
+                // Filter State
+                searchQuery: '',
+                focusFilter: '',
+                premiumOnly: false,
+                minPages: 0,
+                sortBy: 'recent',
+
+                showAdvanced: false,
+
+                init() {
+                    // Load Cache immediately
+                    this.liveStories = [...this.cachedStories];
+                    this.$nextTick(() => lucide.createIcons());
+
+                    // Parse initial URL Params
+                    const params = new URLSearchParams(window.location.search);
+                    this.searchQuery = params.get('q') || '';
+                    this.focusFilter = params.get('f') || '';
+                    this.premiumOnly = params.get('premium') === 'true';
+                    this.minPages = Number(params.get('minPages')) || 0;
+                    this.sortBy = params.get('sort') || 'recent';
+
+                    Alpine.effect(() => {
+                        // Register dependencies by "touching" them
+                        this.filteredStories;
+                        this.showAdvanced;
+                        this.focusFilter;
+
+                        // Wait for DOM to update, then swap icons
+                        this.$nextTick(() => {
+                            lucide.createIcons();
+                        });
+                    });
+
+                    // Watchers to seamlessly update URL without page refresh
+                    this.$watch('searchQuery', val => this.updateUrl('q', val));
+                    this.$watch('focusFilter', val => this.updateUrl('f', val));
+                    this.$watch('premiumOnly', val => this.updateUrl('premium', val ? 'true' : ''));
+                    this.$watch('minPages', val => this.updateUrl('minPages', val > 0 ? val : ''));
+                    this.$watch('sortBy', val => this.updateUrl('sort', val !== 'recent' ? val : ''));
+
+                    // Handle back/forward browser navigation
+                    window.addEventListener('popstate', () => {
+                        const p = new URLSearchParams(window.location.search);
+                        this.searchQuery = p.get('q') || '';
+                        this.focusFilter = p.get('f') || '';
+                        this.premiumOnly = p.get('premium') === 'true';
+                        this.minPages = Number(p.get('minPages')) || 0;
+                        this.sortBy = p.get('sort') || 'recent';
+                    });
+
+                    // Fetch fresh data in background on idle
+                    window.addEventListener('load', () => {
+                        // requestIdleCallback waits for the browser to be "bored"
+                        if ('requestIdleCallback' in window) {
+                            requestIdleCallback(() => this.fetchData());
+                        } else {
+                            // Fallback for older browsers
+                            setTimeout(() => this.fetchData(), 3000);
+                        }
+                    });
+                },
+
+                updateUrl(key, value) {
+                    const url = new URL(window.location);
+                    if (value) {
+                        url.searchParams.set(key, value);
+                    } else {
+                        url.searchParams.delete(key);
+                    }
+                    window.history.replaceState({}, '', url);
+                },
+
+                async fetchData() {
+                    const fetchTTL = 30 // seconds
+                    const now = Math.floor(Date.now() / 1000);
+                    const secondsSinceLastFetch = now - this.lastFetch;
+                    // Optimization: Skip if within cooldown window
+                    if (this.cachedStories.length > 0 && secondsSinceLastFetch < fetchTTL) {
+                        return;
+                    }
+                    try {
+                        const res = await fetch('https://script.google.com/macros/s/AKfycbxr2lLYd4-M8mmc7IAmkwoSvYdIT13O3J_JJlB420-5C3v8nyPmy8aAqA5KlACcl6o9/exec?action=getStories');
+                        let data = await res.json();
+                        const newStories = Array.isArray(data) ? data : (data.data || []);
+                        this.lastFetch = now;
+                        this.compareData(newStories);
+                    } catch (e) {
+                        console.error('API Fetch failed', e);
+                    }
+                },
+
+                compareData(newStories) {
+                    if (this.liveStories.length === 0) {
+                        // First time loading ever
+                        this.liveStories = newStories;
+                        this.cachedStories = newStories;
+                        return;
+                    }
+
+                    const oldIds = this.liveStories.map(s => s.uuid).sort().join(',');
+                    const newIds = newStories.map(s => s.uuid).sort().join(',');
+
+                    if (oldIds !== newIds) {
+                        // Additions/Deletions detected -> queue hard update tooltip
+                        this.pendingStories = newStories;
+                        this.showUpdateTooltip = true;
+                    } else {
+                        // Same structure, soft update values (opacity transition)
+                        this.softUpdating = true;
+                        setTimeout(() => {
+                            this.liveStories.forEach((liveStory) => {
+                                const newStory = newStories.find(s => s.uuid === liveStory.uuid);
+                                if (newStory) Object.assign(liveStory, newStory);
+                            });
+                            this.cachedStories = this.liveStories; // Update persistent cache
+                            this.softUpdating = false;
+                        }, 300); // Wait for opacity-0, update values, transition back to opacity-100
+                    }
+                },
+
+                applyUpdates() {
+                    this.liveStories = [...this.cachedStories];
+                    this.cachedStories = this.liveStories;
+                    this.showUpdateTooltip = false;
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                },
+
+                setFocus(f) {
+                    this.focusFilter = f;
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                },
+
+                get filteredStories() {
+                    let result = this.liveStories.filter(story => {
+                        // Keyword search (title, author, focuses)
+                        if (this.searchQuery) {
+                            const q = this.searchQuery.toLowerCase();
+                            const matchesTitle = story.title?.toLowerCase().includes(q);
+                            const matchesAuthor = story.author?.toLowerCase().includes(q);
+                            const matchesFocus = story.focuses?.some(f => f.toLowerCase().includes(q));
+                            if (!matchesTitle && !matchesAuthor && !matchesFocus) return false;
+                        }
+
+                        // Explicit Focus filter
+                        if (this.focusFilter && !story.focuses?.includes(this.focusFilter)) return false;
+
+                        // Advanced Filters
+                        if (this.premiumOnly && (!story.cost || story.cost === 0)) return false;
+                        if (this.minPages > 0 && (story.pages || 0) < this.minPages) return false;
+
+                        return true;
+                    });
+
+                    // Sorting
+                    if (this.sortBy === 'likes') {
+                        result = result.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                    } else if (this.sortBy === 'views') {
+                        result = result.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    }
+
+                    return result;
+                }
+            }));
+        });
+    </script>
 </body>
 
 </html>
