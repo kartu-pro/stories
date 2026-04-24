@@ -12,6 +12,7 @@
     --text-success: #166534;
     --border-success: #22c55e;
     --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.2s;
 }
 
 .theme-dark {
@@ -97,7 +98,7 @@ input {
     max-width: 32rem;
     background: var(--bg-app);
     box-shadow: var(--shadow);
-    transition: background 0.3s, color 0.3s;
+    transition: background var(--transition-speed), color var(--transition-speed);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -140,7 +141,7 @@ input {
 }
 
 .btn-icon i {
-    transition: transform 0.2s ease-in-out;
+    transition: transform var(--transition-speed) ease-in-out;
 }
 
 .btn-confirm-active {
@@ -172,7 +173,7 @@ input {
 .progress-fill {
     height: 100%;
     background: var(--primary);
-    transition: width 0.5s ease-out;
+    transition: width var(--transition-speed) ease-out;
 }
 
 /* Main Workspace splits evenly between Question and Answer */
@@ -221,7 +222,31 @@ main {
     border-top: 1px solid var(--border);
     background: var(--bg-panel);
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: 1fr;
+    /* The parent will now be as tall as the tallest child */
+    align-items: center;
 }
+
+.stack-item {
+    grid-area: 1 / 1;
+    transition: opacity var(--transition-speed) ease-in-out;
+}
+
+/* When hidden, keep the height but hide the visuals */
+.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    /* This is the key: it stays in the DOM flow but can't be seen */
+}
+
+.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
 
 /* --- Answer Module Semantics --- */
 .mc-options {
@@ -265,7 +290,7 @@ main {
     border-radius: 0.75rem;
     border: 2px solid var(--border);
     background: var(--bg-app);
-    transition: 0.2s;
+    transition: var(--transition-speed);
 }
 
 .text-input:focus {
@@ -355,7 +380,7 @@ main {
     padding: 0.75rem 1.5rem;
     border-radius: 0.75rem;
     font-weight: bold;
-    transition: 0.2s;
+    transition: var(--transition-speed);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -381,7 +406,7 @@ main {
     border: 2px solid var(--border);
     background: var(--bg-app);
     border-radius: 0.75rem;
-    transition: 0.2s;
+    transition: var(--transition-speed);
 }
 
 .btn-outline:hover {
@@ -392,7 +417,7 @@ main {
     padding: 0.5rem;
     border-radius: 50%;
     color: var(--text-muted);
-    transition: 0.2s;
+    transition: var(--transition-speed);
     display: inline-flex;
 }
 
@@ -412,7 +437,7 @@ main {
     font-size: 1.25rem;
     border: 2px solid var(--border);
     background: var(--bg-app);
-    transition: transform 0.1s, opacity 0.2s;
+    transition: transform calc(var(--transition-speed) / 2), opacity var(--transition-speed);
 }
 
 .tile:active {
@@ -444,7 +469,7 @@ main {
     border-radius: 0.5rem;
     font-size: 0.75rem;
     font-weight: bold;
-    transition: 0.2s;
+    transition: var(--transition-speed);
     opacity: 0.4;
     display: flex;
     justify-content: center;
@@ -463,7 +488,7 @@ main {
     height: 1.5rem;
     background: var(--border);
     border-radius: 999px;
-    transition: 0.3s;
+    transition: var(--transition-speed);
     cursor: pointer;
 }
 
@@ -477,7 +502,7 @@ main {
     background: white;
     border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: 0.2s;
+    transition: var(--transition-speed);
 }
 
 .switch.is-active {
@@ -495,12 +520,12 @@ main {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.5rem;
-    transition: 0.2s;
+    transition: var(--transition-speed);
 }
 
 /* Alpine Transitions */
 .slide-transition {
-    transition: transform 0.3s ease-in-out;
+    transition: transform var(--transition-speed) ease-in-out;
 }
 
 .slide-hidden {

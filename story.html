@@ -75,9 +75,9 @@
                     </div>
                 </section>
 
-                <section class="answer-view custom-scroll">
-                    <div x-show="!answered" x-transition.opacity>
+                <section class="answer-view">
 
+                    <div :class="answered ? 'is-hidden' : 'is-visible'" class="stack-item">
                         <template x-if="questionType === 'multiple'">
                             <div class="mc-options">
                                 <template x-for="(option, index) in mcOptions" :key="index">
@@ -122,7 +122,7 @@
 
                     </div>
 
-                    <div x-show="answered" x-transition.opacity x-cloak>
+                    <div :class="!answered ? 'is-hidden' : 'is-visible'" class="stack-item" x-cloak>
                         <div class="feedback-box">
                             <div class="diff-display">
                                 <div x-show="!tooManyErrors()">
