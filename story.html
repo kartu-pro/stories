@@ -53,7 +53,7 @@
             <main>
 
                 <section class="question-view custom-scroll" x-transition.opacity>
-                    <figure x-show="showImage" class="question-image">
+                    <figure x-show="showImage && currentPage.imageUrl" class="question-image">
                         <img :src="currentPage.imageUrl" alt="Question visual" x-cloak>
                     </figure>
 
