@@ -152,8 +152,8 @@
                 x-transition:leave="slide-transition" x-transition:leave-start="slide-visible"
                 x-transition:leave-end="slide-hidden" x-cloak>
                 <header class="panel-header">
-                    <span style="display: flex; gap: 0.5rem; opacity: 0.6"><i data-lucide="flag"></i> Report
-                        Issue</span>
+                    <span style="display: flex; gap: 0.5rem; opacity: 0.6"><i data-lucide="flag"></i>
+                    </span>
                     <button @click="flagOpen = false" class="btn-icon"><i data-lucide="x"></i></button>
                 </header>
                 <div class="panel-content custom-scroll">
@@ -167,11 +167,11 @@
                                 data-lucide="shield-alert"></i></button>
                     </div>
                     <div style="background: var(--bg-panel); padding: 1rem; border-radius: 0.75rem;">
-                        <input type="text" placeholder="Additional details..."
+                        <input type="text" placeholder="..."
                             style="width: 100%; background: transparent; font-size: 0.875rem;">
                     </div>
                     <button @click="flagOpen = false; alert('Report submitted')" class="btn btn-primary"><i
-                            data-lucide="send"></i> Submit</button>
+                            data-lucide="send"></i></button>
                 </div>
             </aside>
 
@@ -181,7 +181,7 @@
                 x-transition:leave-end="slide-hidden" x-cloak>
                 <header class="panel-header">
                     <span style="display: flex; gap: 0.5rem; opacity: 0.6"><i data-lucide="settings"></i>
-                        Settings</span>
+                    </span>
                     <button @click="settingsOpen = false" class="btn-icon"><i data-lucide="x"></i></button>
                 </header>
                 <div class="panel-content custom-scroll">
