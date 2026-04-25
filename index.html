@@ -124,7 +124,7 @@
                         <div class="flex justify-center">
                             <i data-lucide="file-text" class="w-5 h-5 text-slate-400"></i>
                         </div>
-                        <div class="px-2 pb-2">
+                        <div class="px-2">
 
                             <div class="relative h-1.5 flex items-center bg-slate-100 rounded-full">
                                 <div class="absolute h-full bg-blue-600/20 rounded-full" :style="`left: ${(minPages/absoluteMaxPages)*100}%; 
@@ -285,48 +285,53 @@
                         return;
                     }
                     try {
-                        const res = await fetch('https://script.google.com/macros/s/AKfycbxr2lLYd4-M8mmc7IAmkwoSvYdIT13O3J_JJlB420-5C3v8nyPmy8aAqA5KlACcl6o9/exec?action=getStories');
+                        const url = 'https://script.google.com/macros/s/AKfycbxr2lLYd4-M8mmc7IAmkwoSvYdIT13O3J_JJlB420-5C3v8nyPmy8aAqA5KlACcl6o9/exec?action=getStories';
+                        const res = await fetch(url);
                         let data = await res.json();
-                        const newStories = Array.isArray(data) ? data : (data.data || []);
+                        const fetchedStories = Array.isArray(data) ? data : (data.data || []);
+
                         this.lastFetch = now;
-                        this.compareData(newStories);
+                        this.processUpdates(fetchedStories);
                     } catch (e) {
                         console.error('API Fetch failed', e);
                     }
                 },
 
-                compareData(newStories) {
+                processUpdates(newStories) {
+                    // 1. Always update the persistent cache immediately
+                    this.cachedStories = newStories;
+
+                    // 2. If it's the first load of the session
                     if (this.liveStories.length === 0) {
-                        // First time loading ever
-                        this.liveStories = newStories;
-                        this.cachedStories = newStories;
+                        this.liveStories = [...newStories];
                         return;
                     }
 
-                    const oldIds = this.liveStories.map(s => s.uuid).sort().join(',');
+                    // 3. Compare IDs for structural changes
+                    const currentIds = this.liveStories.map(s => s.uuid).sort().join(',');
                     const newIds = newStories.map(s => s.uuid).sort().join(',');
 
-                    if (oldIds !== newIds) {
-                        // Additions/Deletions detected -> queue hard update tooltip
+                    if (currentIds !== newIds) {
+                        // Structural change: Queue the update
                         this.pendingStories = newStories;
                         this.showUpdateTooltip = true;
                     } else {
-                        // Same structure, soft update values (opacity transition)
+                        // Soft update: Content changed, but IDs are the same
                         this.softUpdating = true;
                         setTimeout(() => {
-                            this.liveStories.forEach((liveStory) => {
-                                const newStory = newStories.find(s => s.uuid === liveStory.uuid);
-                                if (newStory) Object.assign(liveStory, newStory);
-                            });
-                            this.cachedStories = this.liveStories; // Update persistent cache
+                            // Map the new data onto the existing array to maintain references if needed
+                            this.liveStories = [...this.cachedStories];
                             this.softUpdating = false;
-                        }, 300); // Wait for opacity-0, update values, transition back to opacity-100
+                        }, 300);
                     }
                 },
 
                 applyUpdates() {
-                    this.liveStories = [...this.cachedStories];
-                    this.cachedStories = this.liveStories;
+                    // Set live data to the pending data we stored earlier
+                    this.liveStories = [...this.pendingStories];
+
+                    // Reset state
+                    this.pendingStories = [];
                     this.showUpdateTooltip = false;
                     window.scrollTo({top: 0, behavior: 'smooth'});
                 },
