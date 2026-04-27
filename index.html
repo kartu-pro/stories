@@ -200,8 +200,9 @@
 
                             <div class="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar pb-1">
                                 <template x-for="focus in story.focuses" :key="focus">
-                                    <button @click.stop="setFocus(focus)" x-text="focus"
-                                        class="text-[10px] uppercase tracking-wider font-semibold bg-slate-100 text-slate-600 rounded-md px-2 py-1 whitespace-nowrap hover:bg-slate-200 transition-colors"></button>
+                                    <button @click.stop="setFocus(focus)" x-text="focus" :style="getFocusStyle(focus)"
+                                        class="text-[10px] uppercase tracking-wider font-semibold border rounded-md px-2 py-1 whitespace-nowrap transition-all hover:brightness-95">
+                                    </button>
                                 </template>
                             </div>
                         </div>
@@ -252,7 +253,7 @@
 
             <div x-show="filteredStories.length === 0" style="display: none;"
                 class="py-10 text-center text-slate-400 flex flex-col items-center">
-                <i data-lucide="ghost" class="w-10 h-10 mb-2 opacity-50"></i>
+                <i data-lucide="loader" class="w-10 h-10 mb-2 opacity-50"></i>
             </div>
         </div>
 
@@ -271,6 +272,7 @@
                 // Story Data State
                 cachedStories: Alpine.$persist([]).as('library_stories'),
                 lastFetch: Alpine.$persist(0).as('library_fetch_timestamp'),
+                isLoading: true,
                 liveStories: [],
                 pendingStories: [],
                 showUpdateTooltip: false,
@@ -414,6 +416,29 @@
                 setFocus(f) {
                     this.searchQuery = f;
                     window.scrollTo({top: 0, behavior: 'smooth'});
+                },
+
+                // FOCUS BADGE STYLING
+                // Simple string to hash function (djb2 algorithm)
+                getHashCode(hashStr) {
+                    let hash = 0;
+                    for (let i = 0; i < hashStr.length; i++) {
+                        hash = hashStr.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    return Math.abs(hash);
+                },
+
+                // Returns a style object with consistent, readable colors
+                getFocusStyle(hashStr) {
+                    const hash = this.getHashCode(hashStr);
+                    // Use a high saturation (60-70%) and controlled lightness (90-95% for bg)
+                    const hue = hash % 360;
+
+                    return {
+                        backgroundColor: `hsl(${hue}, 70%, 94%)`,
+                        color: `hsl(${hue}, 80%, 25%)`, // Darker version of same hue for text
+                        borderColor: `hsl(${hue}, 70%, 85%)`
+                    };
                 },
 
 
